@@ -2,7 +2,7 @@ import InputError from '@/Components/Core/InputError';
 import InputLabel from '@/Components/Core/InputLabel';
 import PrimaryButton from '@/Components/Core/PrimaryButton';
 import TextInput from '@/Components/Core/TextInput';
-import GuestLayout from '@/Layouts/GuestLayout';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 
@@ -23,9 +23,12 @@ export default function Register() {
     };
 
     return (
-        <GuestLayout>
+        <AuthenticatedLayout>
             <Head title="Register" />
 
+            <div className={"p-8"}>
+            <div className="card bg-white shadow max-w-[420px] mx-auto">
+            <div className="card-body">
             <form onSubmit={submit}>
                 <div>
                     <InputLabel htmlFor="name" value="Name" />
@@ -116,6 +119,9 @@ export default function Register() {
                     </PrimaryButton>
                 </div>
             </form>
-        </GuestLayout>
+            </div>
+            </div>
+            </div>
+        </AuthenticatedLayout>
     );
 }
