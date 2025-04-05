@@ -13,6 +13,7 @@ class Product extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
+
     public function registerMediaConversions(?Media $media = null): void
     {
         $this->addMediaConversion('thumb')
@@ -38,6 +39,11 @@ class Product extends Model implements HasMedia
     public function variationTypes(): HasMany
     {
         return $this->hasMany(VariationType::class);
+    }
+
+    public function variations(): HasMany
+    {
+        return $this->hasMany(ProductVariation::class, 'product_id');
     }
 
 
