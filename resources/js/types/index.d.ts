@@ -24,7 +24,7 @@ export type VariationTypeOption = {
 
 export type VariationType = {
     id: number;
-    name: string; 
+    name: string;
     type: 'Select' | 'Radio' | 'Image';
     options: VariationTypeOption[]
 }
@@ -56,6 +56,27 @@ export type Product = {
     }>
 }
 
+export type CartItem = {
+  id: number;
+  product_id: number;
+  title: string;
+  slug: string;
+  price: number;
+  quantity: number;
+  image: string;
+  option_ids: Record<string, number>;
+  options: VariationTypeOption[]                                       
+}
+
+export type GroupedCartItems = {
+  user: User;
+  items: CartItem[];
+  totalQuantity: number;
+  totalPrice: number;
+}
+
+
+
 export type PaginationProps<T> = {
   data: Array<T>
 }
@@ -63,8 +84,12 @@ export type PaginationProps<T> = {
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {
+  csrf_token: string;
     auth: {
         user: User;
     };
     ziggy: Config & { location: string };
-};
+    totalQuantity: number;
+    totalPrice: number;
+    miniCartItems: CartItem[];
+}; 
