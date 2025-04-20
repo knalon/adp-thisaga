@@ -22,11 +22,11 @@ class OrderViewResource extends JsonResource
             'status' => $this->status,
             'created_at' => $this->created_at->format('Y-m-d H:i:s'),
             'vendorUser' => new VendorUserResource($this->vendorUser),
-            'orderItems' => $this->orderItems->map(fn ($item) => [
-                    'id' => $orderItem->id,
-                    'quantity' => $orderItem->quantity,
-                    'price' => $orderItem->price,
-                    'variation_type_option_ids' => $orderItem->variation_type_option_ids,
+            'orderItems' => $this->orderItems->map(fn($item) => [
+                    'id' => $item->id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'variation_type_option_ids' => $item->variation_type_option_ids,
                     'product' => [
                         'id' => [
                             'id' => $item->product->id,
@@ -35,7 +35,8 @@ class OrderViewResource extends JsonResource
                             'description' => $item->product->description,
                             'image' => $item->product->getImageForOptions($item->variation_type_option_ids ?: []),
                         ],
-                ])
+                ]
+            ]),
         ];
     }
 }
