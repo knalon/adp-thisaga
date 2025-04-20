@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\StripeController;
 use Inertia\Inertia;
 
 // Guest Routes
@@ -21,7 +22,8 @@ Route::controller(CartController::class)->group(function () {
     ->name('cart.destroy');
 });
 
-
+Route::post('/stripe/webhook', [StripeController::class, 'webhook'])
+->name('stripe.webhook');
 
 // Auth routes
 Route::middleware('auth')->group(function () {
@@ -32,6 +34,12 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['verified'])->group(function () {
         Route::post('/cart/checkout', [CartController::class, 'checkout'])
         ->name('cart.checkout');
+
+        Route::get('/stripe/success', [StripeController::class, 'success'])
+        ->name('stripe.success');
+
+        Route::get('/stripe/failure', [StripeController::class, 'failure'])
+        ->name('stripe.failure');
     });
 });
 

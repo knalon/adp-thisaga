@@ -2,10 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Services\CartService;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\OrderItem;
+use Illuminate\Http\Request;
+use App\Services\CartService;
+use App\Enums\OrderStatusEnum;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
 
 
 class CartController extends Controller
@@ -69,13 +75,87 @@ class CartController extends Controller
         $cartService->removeItemFromCart($product->id, $optionIds);
 
         return back()->with('success', 'Product removed from cart successfully!');
-
     }
 
-    public function checkout(CartService $cartService)
+    public function checkout(Request $request, CartService $cartService)
     {
-        return Inertia::render('Cart/Checkout', [
-            'cartItems' => $cartService->getCartItemsGrouped(),
-        ]);
+        \Stripe\Stripe::setApiKey(config('app.stripe_secret_key'));
+
+        $vendorId = $request->input('vendor_id');
+
+        $allCartItems = $cartService->getCartItemsGrouped();
+
+        DB::beginTransaction();
+        try{
+            $checkoutCartItems = $allCartItems;
+            if ($vendorId) {
+                $checkoutCartItems = [$allCartItems[$vendorId]];
+            }
+            $orders = [];
+            $lineItems = [];
+            foreach ($checkoutCartItems as $item) {
+                $user = $item['user'];
+                $cartItems = $item['items'];
+
+                $order = Order::create([
+                    'stripe_session_id' => null,
+                    'user_id' => $request->user()->id,
+                    'vendor_user_id' => $user['id'],
+                    'total_price' => $item['totalPrice'],
+                    'status' => OrderStatusEnum::Draft->value,
+                ]);
+                $orders[] = $order;
+
+                foreach ($cartItems as $cartItem) {
+                        OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $cartItem['product_id'],
+                        'quantity' => $cartItem['quantity'],
+                        'price' => $cartItem['price'],
+                        'variation_type_option_ids' => $cartItem['option_ids'],
+                    ]);
+
+                    $description = collect($cartItem['options'])->map(function ($item) {
+                        return "{$item['type']['name']}: {$item['name']}";
+                    })->implode(', ');
+
+                    $lineItem = [
+                        'price_data' => [
+                            'currency' => config('app.currency'),
+                            'product_data' => [
+                                'name' => $cartItem['title'],
+                                'images' => [$cartItem['image']],
+                            ],
+                            'unit_amount' => $cartItem['price'] * 100,
+                        ],
+                        'quantity' => $cartItem['quantity'],
+                    ];
+                    if ($description) {
+                        $lineItem['price_data']['product_data']['description'] = $description;
+                    }
+                    $lineItems[] = $lineItem;
+                }
+            }
+            $session = \Stripe\Checkout\Session::create([
+                'customer_email' => $request->user()->email,
+                'line_items' => $lineItems,
+                'mode' => 'payment',
+                'success_url' => route('stripe.success', [], true) . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('stripe.failure', [], true),
+            ]);
+
+            foreach ($orders as $order) {
+                $order->stripe_session_id = $session->id;
+                $order->save();
+            }
+
+            DB::commit();
+            return redirect($session->url);
+        } catch (\Exception $e) {
+         Log::error($e);
+         DB::rollBack();
+         return back()->with('error', $e->getMessage() ?: 'Something went wrong');
+
+        }
     }
 }

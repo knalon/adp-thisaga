@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use App\Enums\ProductStatusEnum;
 
-
 class Product extends Model implements HasMedia
 {
     use InteractsWithMedia;
@@ -69,7 +68,7 @@ class Product extends Model implements HasMedia
         return $this->hasMany(ProductVariation::class, 'product_id');
     }
 
-    public function getPriceForOptions($optionIds = []) 
+    public function getPriceForOptions($optionIds = [])
     {
         $optionIds = array_values($optionIds);
         sort($optionIds);
@@ -80,10 +79,26 @@ class Product extends Model implements HasMedia
                 return $variation->price !== null ? $variation->price : $this->price;
             }
         }
-    
+
         return $this->price;
-        
+
     }
 
+    public function getImageForOptions(array $optionIds = null)
+    {
+        if($optionIds) {
+            $optionIds = array_values($optionIds);
+            sort($optionIds);
+            $options = VariationTypeOption::whereIn('id', $optionIds)->get();
 
+            foreach ($options as $option) {
+                $image = $option->getFirstMediaUrl('images', 'small');
+                if ($image) {
+                    return $image;
+                }   
+            }
+        }
+
+        return $this->getFirstMediaUrl('images', 'small');
+    }
 }
