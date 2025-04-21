@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\ProductListResource;
-use App\Http\Resources\ProductResource;
-use Illuminate\Http\Request;
-use App\Models\Product;
 use Inertia\Inertia;
+use App\Models\Product;
+use App\Models\Department;
+use Illuminate\Http\Request;
+use App\Http\Resources\ProductResource;
+use App\Http\Resources\DepartmentResource;
+use App\Http\Resources\ProductListResource;
 
 class ProductController extends Controller
 {
-    public function home () {
+    public function home (Request $request) {
 
+        $keyword = $request->query('keyword');
         $products = Product::query()
         ->forWebsite()
         ->paginate(12);
@@ -29,5 +32,27 @@ class ProductController extends Controller
             'variastionOptions' => request('options', [])
         ]);
     }
+
+    public function byDepartment(Request $request, Department $department)
+    {
+        abort_unless($department->active, 404);
+
+        $keyword = $request->query('keyword');
+        $products = Product::query()
+        ->forWebsite()
+        ->when($keyword, function ($query, $keyword) {
+            $query->where(function ($query) use ($keyword) {
+                $query->where('title', 'LIKE', "%{$keyword}%")
+                    ->orWhere('description', 'LIKE', "%{$keyword}%");
+            });
+        })
+        ->paginate();
+
+    return Inertia::render('Department/Index', [
+        'department' => new DepartmentResource($department),
+        'products' => ProductListResource::collection($products),
+        'keyword' => $keyword,
+    ]);
+}
 
 }

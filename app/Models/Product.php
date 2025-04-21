@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Spatie\MediaLibrary\HasMedia;
-use Spatie\MediaLibrary\InteractsWithMedia;
-use Spatie\MediaLibrary\MediaCollections\Models\Media;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
+use App\Enums\VendorStatusEnum;
 use App\Enums\ProductStatusEnum;
+use Spatie\MediaLibrary\HasMedia;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Spatie\MediaLibrary\MediaCollections\Models\Collections\MediaCollection;
 
 class Product extends Model implements HasMedia
@@ -37,12 +38,18 @@ class Product extends Model implements HasMedia
 
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('status', ProductStatusEnum::Published);
+        return $query->where('product.status', ProductStatusEnum::Published);
     }
 
     public function scopeForWebsite(Builder $query): Builder
     {
-        return $query->published();
+        return $query->published()->vendorApproved();
+    }
+
+    public function scopeVendorApproved(Builder $query)
+    {
+        return $query->join('vendors', 'vendors.user_id', '=', 'products.created_by')
+        ->where('vendors.status', VendorStatusEnum::Approved->value);
     }
 
     public function user(): BelongsTo

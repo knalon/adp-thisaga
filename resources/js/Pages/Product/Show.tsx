@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import {Product} from '@/types';
+import {Product, PageProps} from '@/types';
 import {Head, Link, usePage} from '@inertiajs/react';
 import {useForm} from '@inertiajs/react';
 import {useMemo, useState} from 'react';
@@ -12,9 +12,13 @@ import { arraysAreEqual } from '@/helpers';
 
 
 
-function Show ({product, VariationOptions}: {
-  product: Product, VariationOptions: number[]
-}) {
+
+function Show ({
+  appName,product, VariationOptions
+}: PageProps<{
+  product: Product, 
+  VariationOptions: number[]
+}>) {
 
   const form = useForm<{
     option_ids: Record<number, number>;
@@ -84,7 +88,7 @@ function Show ({product, VariationOptions}: {
   const getOptionIdsMap =
   (newOptions: object) => {
     return Object.fromEntries(
-      Object.entries(newOptions).map(([a, b]) => [a, b.id])    
+      Object.entries(newOptions).map(([a, b]) => [a, b.id])
     )
 }
 
@@ -203,7 +207,19 @@ function Show ({product, VariationOptions}: {
 
     return (
       <AuthenticatedLayout>
-        <Head title={product.title}/>
+        <Head>
+          <title>{product.title}</title>
+          <meta name="title" content={product.meta_title || product.title}/>
+          <meta name="description" content={product.meta_description}/>
+          <link rel="canonical" href={route('product.show', product.slug)}/>
+
+          <meta property="og:title" content={product.title}/>
+          <meta property="og:description" content={product.meta_description}/>
+          <meta property="og:image" content={images[0]?.small}/>
+          <meta property="og:url" content={route('product.show', product.slug)}/>
+          <meta property="og:type" content="product"/>
+          <meta property="og:site_name" content={appName}/>
+        </Head>
 
       <div className="container mx-auto p-8">
         <div className="grid gap-8 grid-cols-1 lg:grid-cols-12">
@@ -211,11 +227,20 @@ function Show ({product, VariationOptions}: {
             <Carousel images={images}/>
           </div>
           <div className="col-span-5">
+            <h1 className="text-2xl ">{product.title}</h1>
+
+            <p className={'mb-8'}>
+              by <Link href={route('vendor.profile', product.user.store_name)}
+               className="hover:underline">{product.user.name}</Link>&nbsp;
+              in <Link href={route('product.byDepartment', product.department.slug)} className="hover:underline">{product.department.name}</Link>
+            </p>
+
+          <div className="text-3xl font-semibold">
             <CurrencyFormatter amount={computedProduct.price} />
           </div>
           </div>
 
-          
+
           {renderProductVariationTypes()}
 
           {computedProduct.quantity != undefined &&
@@ -231,6 +256,7 @@ function Show ({product, VariationOptions}: {
           dangerouslySetInnerHTML={{__html: product
           .description}}/>
         </div>
+      </div>
       </AuthenticatedLayout>
     );
 }

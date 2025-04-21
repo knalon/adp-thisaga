@@ -112,6 +112,13 @@ class ProductResource extends Resource
         ->options(ProductStatusEnum::labels())
         ->default(ProductStatusEnum::Draft->value)
         ->required(),
+        Forms\Components\Section::make('SEO')
+          ->collapsible()
+          ->schema([
+           TextInput::make('meta_title'),
+            Forms\Components\Textarea::make('meta_description'),
+          ])
+          
         ]);
     }
 

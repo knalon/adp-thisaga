@@ -2,17 +2,30 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Vendor;
+use App\Models\Product;
 use App\Enums\RolesEnum;
 use Illuminate\Http\Request;
 use App\Enums\VendorStatusEnum;
 use Illuminate\Validation\Rule;
+use App\Http\Resources\ProductListResource;
+
 
 class VendorController extends Controller
 {
-    public function profile(Vendor $vendor)
+    public function profile(Request $request, Vendor $vendor)
     {
+        $keyword = $request->query('keyword');
+        $products = Product::query()
+          ->forWebsite()
+          ->where('created_by', $vendor->user_id)
+          ->paginate();
 
+          return Inertia::render('Vendors/Profile', [
+            'vendor' => $vendor,
+            'products' => ProductListResource::collection($products),
+          ]);
     }
 
     public function store(Request $request)
