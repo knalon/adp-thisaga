@@ -1,12 +1,14 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
+use Inertia\Inertia;
+use App\Enums\RolesEnum;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ProductController;
+use Illuminate\Foundation\Application;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\StripeController;
-use Inertia\Inertia;
+use App\Http\Controllers\VendorController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 
 // Guest Routes
 Route::get('/', [ProductController::class, 'home'])->name('dashboard');
@@ -40,6 +42,13 @@ Route::middleware('auth')->group(function () {
 
         Route::get('/stripe/failure', [StripeController::class, 'failure'])
         ->name('stripe.failure');
+
+        Route::post('/become-a-vendor', [VendorController::class, 'store'])
+        ->name('vendor.store');
+
+        Route::post('/stripe/connect', [StripeController::class, 'connect'])
+        ->name('stripe.connect')
+        ->middleware(['role:'. RolesEnum::Vendor->value]);
     });
 });
 
