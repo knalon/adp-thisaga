@@ -7,25 +7,33 @@ import { PropsWithChildren, ReactNode, useState } from 'react';
 import Navbar from '@/Components/App/Navbar';
 import { useEffect, useRef } from 'react';
 
+interface SuccessMessage {
+  message: string;
+  time: number;
+  id: number;
+}
+
 export default function AuthenticatedLayout(
   {
     header,
     children,
 }: PropsWithChildren<{ header?: ReactNode }>) {
-    const props = usePage().props;
-    const user = props.auth.user;
+    const { props } = usePage();
+    const user = props.auth?.user;
 
-    const [successMessages, setSuccessMessages] = useState<any[]>([]);
+    const [successMessages, setSuccessMessages] = useState<SuccessMessage[]>([]);
     const timeoutRefs = useRef<{ [key: number]: ReturnType<typeof setTimeout> }>({}); 
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
         useEffect(() => {
-          if (props.success.message) {
-            const newMessage = {
-              ...props.success,
-              id: props.success.time,
+      const success = props.success as SuccessMessage | undefined;
+      if (success?.message) {
+        const newMessage: SuccessMessage = {
+          message: success.message,
+          time: success.time || Date.now(),
+          id: success.time || Date.now(),
             };
 
             setSuccessMessages((prevMessages) => [newMessage, ...prevMessages]);
@@ -42,14 +50,17 @@ export default function AuthenticatedLayout(
           }
           }, [props.success]);
 
+    // Get the error message in a way that can be safely rendered
+    const errorMessage = props.error ? String(props.error) : null;
+
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
             <Navbar/>
 
-            {props.error && (
+            {errorMessage && (
               <div className="container mx-auto px-8 mt-8">
                 <div className="alert alert-error">
-                  {props.error}
+                  {errorMessage}
                   </div>
               </div>
             )}

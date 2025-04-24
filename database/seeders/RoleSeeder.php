@@ -3,11 +3,9 @@
 namespace Database\Seeders;
 
 use App\Enums\RolesEnum;
-use App\Enums\PermissionsEnum;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RoleSeeder extends Seeder
 {
@@ -16,16 +14,48 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        $userRole = Role::create(['name' => RolesEnum::User->value]);
-        $vendorRole = Role::create(['name' => RolesEnum::Vendor->value]);
+        // Reset cached roles and permissions
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Create roles
         $adminRole = Role::create(['name' => RolesEnum::Admin->value]);
+        $userRole = Role::create(['name' => RolesEnum::User->value]);
 
-        $approveVendors = Permission::create(['name' => PermissionsEnum::ApproveVendors->value]);
-        $sellProducts = Permission::create(['name' => PermissionsEnum::SellProducts->value]);
-        $buyProducts = Permission::create(['name' => PermissionsEnum::BuyProducts->value]);
+        // Create permissions
+        $permissions = [
+            // Car permissions
+            'view cars',
+            'create cars',
+            'edit cars',
+            'delete cars',
+            'approve cars',
 
-        $userRole->syncPermissions([ $buyProducts,]);
-        $vendorRole->syncPermissions([ $sellProducts, $buyProducts,]);
-        $adminRole->syncPermissions([ $sellProducts, $approveVendors, $buyProducts,]);
+            // Appointment permissions
+            'create appointments',
+            'manage appointments',
+
+            // User permissions
+            'manage users',
+
+            // Transaction permissions
+            'create transactions',
+            'view transactions',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
+
+        // Assign all permissions to admin
+        $adminRole->givePermissionTo(Permission::all());
+
+        // Assign specific permissions to user role
+        $userRole->givePermissionTo([
+            'view cars',
+            'create cars',
+            'edit cars',
+            'delete cars',
+            'create appointments',
+        ]);
     }
 }

@@ -5,16 +5,24 @@ import { FormEventHandler, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { MagnifyingGlassCircleIcon } from '@heroicons/react/24/outline';
 
-function Navbar() {
-  const {auth, departments, keyword} = usePage().props;
-  const {user} = auth;
+interface Department {
+  id: number;
+  name: string;
+  slug: string;
+}
 
-  const searchForm = useForm<{
-    keyword:string;
-  }>({
-    keyword: keyword || '',
-  })
-  const {url} = usePage();
+function Navbar() {
+  const { props } = usePage();
+  const auth = props.auth as { user: any | null };
+  const departments = props.departments as Department[] || [];
+  const keyword = props.keyword as string || '';
+  const { user } = auth;
+
+  const searchForm = useForm({
+    keyword: keyword
+  });
+  
+  const { url } = usePage();
 
   const onSubmit: FormEventHandler = (e) => {
     e.preventDefault();
@@ -25,12 +33,11 @@ function Navbar() {
     });
    };
 
-
   return (
     <>
     <div className="navbar bg-base-100">
   <div className="flex-1">
-    <Link href="/"className="btn btn-ghost text-xl">LaraStore</Link>
+          <Link href="/" className="btn btn-ghost text-xl">LaraStore</Link>
   </div>
   <div className="flex-none gap-4">
     <form onSubmit={onSubmit} className="join flex-1">
@@ -39,7 +46,8 @@ function Navbar() {
          value={searchForm.data.keyword}
          onChange={(e) => 
           searchForm.setData('keyword', e.target.value)}
-          className="input input-bordered join-item w-full" placeholder="Search" />
+                className="input input-bordered join-item w-full" 
+                placeholder="Search" />
       </div>
       <div className="indicator">
         <button className="btn join-item">
@@ -49,7 +57,8 @@ function Navbar() {
       </div>
     </form>
     <MiniCartDropdown/> 
-    {user &&     <div className="dropdown dropdown-end">
+          {user && (
+            <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
         <div className="w-10 rounded-full">
           <img
@@ -68,17 +77,20 @@ function Navbar() {
         </li>
         <li><Link href={route('logout')} method={"post"} as="button">Logout</Link></li>
       </ul>
-    </div>}
-    {!user && <>
+            </div>
+          )}
+          {!user && (
+            <>
     <Link href={route('login')} className={"btn"}>Login</Link>
     <Link href={route('register')} className={"btn btn-primary"}>Register</Link>
-    </>}
+            </>
+          )}
   </div>
 </div>
     <div className={"navbar bg-base-100 border-t min-h-4"}>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 z-20 py-0">
-          {departments.map((department) => (
+            {departments.map((department: Department) => (
             <li key={department.id}>
               <Link href={route('product.byDepartment', department.slug)}>{department.name}</Link>
             </li>

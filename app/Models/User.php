@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -49,8 +49,18 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    public function vendor(): HasOne
+    public function cars(): HasMany
     {
-        return $this->hasOne(Vendor::class, 'user_id');
+        return $this->hasMany(Car::class);
+    }
+
+    public function appointments(): HasMany
+    {
+        return $this->hasMany(Appointment::class);
+    }
+
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(Transaction::class);
     }
 }

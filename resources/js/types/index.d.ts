@@ -4,7 +4,8 @@ export interface User {
     id: number;
     name: string;
     email: string;
-    email_verified_at?: string;
+    email_verified_at: string;
+    roles: Role[];
     stripe_account_active: boolean;
     vendor: {
       status: string;
@@ -13,6 +14,11 @@ export interface User {
       store_address: string;
       cover_image: string;
     }
+}
+
+export interface Role {
+  id: number;
+  name: string;
 }
 
 export type Image = {
@@ -77,7 +83,7 @@ export type CartItem = {
   quantity: number;
   image: string;
   option_ids: Record<string, number>;
-  options: VariationTypeOption[]                                       
+  options: VariationTypeOption[]
 }
 
 export type GroupedCartItems = {
@@ -87,32 +93,22 @@ export type GroupedCartItems = {
   totalPrice: number;
 }
 
-
-
 export type PaginationProps<T> = {
   data: Array<T>
 }
 
-export type PageProps<
-    T extends Record<string, unknown> = Record<string, unknown>,
-> = T & {
-  appName: string;
-  csrf_token: string;
-  error:string;
-  success: {
+// Fix for line 110
+export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = {
+  auth: {
+    user: User;
+  };
+  flash: {
     message: string;
-    time: number;
-  },
-    auth: {
-        user: User;
-    };
-    ziggy: Config & { location: string };
-    totalQuantity: number;
-    totalPrice: number;
-    miniCartItems: CartItem[];
-    departments: Department[];
-    keyword: string;
-}; 
+    success: string;
+    error: string;
+  };
+  errors: Record<string, string>;
+} & T;
 
 
 export type OrderItem= {
@@ -162,4 +158,77 @@ export type Department = {
   meta_title: string;
   meta_description: string;
   categories: Category[]
+}
+
+export interface Car {
+  id: number;
+  user_id: number;
+  make: string;
+  model: string;
+  registration_year: number;
+  price: number;
+  description: string | null;
+  color: string | null;
+  mileage: string | null;
+  transmission: string | null;
+  fuel_type: string | null;
+  is_active: boolean;
+  is_approved: boolean;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+  media?: Media[];
+}
+
+export interface Media {
+  id: number;
+  model_type: string;
+  model_id: number;
+  uuid: string;
+  collection_name: string;
+  name: string;
+  file_name: string;
+  mime_type: string;
+  disk: string;
+  conversions_disk: string;
+  size: number;
+  manipulations: any[];
+  custom_properties: any;
+  generated_conversions: any;
+  responsive_images: any[];
+  order_column: number;
+  created_at: string;
+  updated_at: string;
+  original_url: string;
+  preview_url: string;
+}
+
+export interface Appointment {
+  id: number;
+  user_id: number;
+  car_id: number;
+  appointment_date: string;
+  bid_price: number | null;
+  status: 'pending' | 'approved' | 'rejected' | 'completed';
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+  car?: Car;
+}
+
+export interface Transaction {
+  id: number;
+  user_id: number;
+  car_id: number;
+  appointment_id: number | null;
+  final_price: number;
+  status: 'pending' | 'completed' | 'cancelled';
+  transaction_reference: string | null;
+  created_at: string;
+  updated_at: string;
+  user?: User;
+  car?: Car;
+  appointment?: Appointment;
 }

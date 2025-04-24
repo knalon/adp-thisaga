@@ -16,8 +16,8 @@ return new class extends Migration
             $table->id();
             $table->foreignIdFor(User::class, 'vendor_id');
             $table->decimal('amount', 20, 4);
-            $table->timestamp('starting_from');
-            $table->timestamp('until');
+            $table->timestamp('starting_from')->nullable();
+            $table->timestamp('until')->nullable();
             $table->timestamps();
         });
     }

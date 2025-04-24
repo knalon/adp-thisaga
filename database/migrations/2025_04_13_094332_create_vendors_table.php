@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('status');
             $table->string('store_name');
             $table->string('store_address')->nullable();
-            $table->string('cover_image ')->nullable();
+            $table->string('cover_image')->nullable();
             $table->timestamps();
         });
     }

@@ -8,7 +8,7 @@ use App\Enums\RolesEnum;
 use App\Enums\VendorStatusEnum;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -17,26 +17,22 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'User',
-            'email' => 'user@example.com',
-        ])-> assignRole(RolesEnum::User->value);
-
-        $user = User::factory()->create([
-            'name' => 'Vendor',
-            'email' => 'vendor@example.com',
+        // Create admin user
+        $adminUser = User::create([
+            'name' => 'Admin User',
+            'email' => 'admin@abccars.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
         ]);
-        $user->assignRole(RolesEnum::Vendor->value);
-        Vendor::factory()->create([
-            'user_id' => $user->id,
-            'status' => VendorStatusEnum::Approved,
-            'store_name' => 'Vendor Store',
-            'store_address' => fake()->address(),
-        ]);
+        $adminUser->assignRole(RolesEnum::Admin->value);
 
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-        ])-> assignRole(RolesEnum::Admin->value);
+        // Create test user
+        $testUser = User::create([
+            'name' => 'Test User',
+            'email' => 'user@abccars.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+        ]);
+        $testUser->assignRole(RolesEnum::User->value);
     }
 }
