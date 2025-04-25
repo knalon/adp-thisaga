@@ -50,13 +50,13 @@ class Car extends Model implements HasMedia
 
     /**
      * Activate this car listing
-     * 
+     *
      * @return void
      */
     public function activate(): void
     {
         $this->update(['is_active' => true]);
-        
+
         // Log the activation
         ActivityLog::log(
             'Car listing activated',
@@ -65,16 +65,16 @@ class Car extends Model implements HasMedia
             ['car_id' => $this->id, 'car_make' => $this->make, 'car_model' => $this->model]
         );
     }
-    
+
     /**
      * Deactivate this car listing
-     * 
+     *
      * @return void
      */
     public function deactivate(): void
     {
         $this->update(['is_active' => false]);
-        
+
         // Log the deactivation
         ActivityLog::log(
             'Car listing deactivated',
@@ -97,6 +97,37 @@ class Car extends Model implements HasMedia
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function bids(): HasMany
+    {
+        return $this->hasMany(Bid::class);
+    }
+
+    /**
+     * Get the current highest bid for this car
+     *
+     * @return \App\Models\Bid|null
+     */
+    public function getHighestBid()
+    {
+        return $this->bids()
+            ->whereIn('status', ['pending', 'accepted'])
+            ->orderBy('amount', 'desc')
+            ->first();
+    }
+
+    /**
+     * Get all active bids for this car
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getActiveBids()
+    {
+        return $this->bids()
+            ->whereIn('status', ['pending', 'accepted'])
+            ->orderBy('amount', 'desc')
+            ->get();
     }
 
     public function registerMediaCollections(): void

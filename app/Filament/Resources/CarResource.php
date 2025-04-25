@@ -310,7 +310,8 @@ class CarResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\AppointmentsRelationManager::class,
+            RelationManagers\BidsRelationManager::class,
         ];
     }
 

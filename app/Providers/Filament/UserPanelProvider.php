@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\User\Pages\Dashboard;
+use App\Filament\User\Pages\Profile;
 use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -43,6 +44,7 @@ class UserPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/User/Pages'), for: 'App\\Filament\\User\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                Profile::class,
             ])
             ->discoverWidgets(in: app_path('Filament/User/Widgets'), for: 'App\\Filament\\User\\Widgets')
             ->widgets([
@@ -75,4 +77,4 @@ class UserPanelProvider extends PanelProvider
                 'Account',
             ]);
     }
-} 
+}

@@ -85,3 +85,4 @@ class PaymentController extends Controller
             ->with('info', 'Payment was canceled.');
     }
 }
+ 

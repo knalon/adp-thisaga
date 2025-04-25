@@ -60,17 +60,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Ban this user and send ban notification
-     * 
+     *
      * @param string $reason Reason for the ban
      * @return void
      */
     public function ban(string $reason = ''): void
     {
         $this->update(['is_banned' => true]);
-        
+
         // Send ban notification
         $this->notify(new UserBanned($reason));
-        
+
         // Log the ban
         ActivityLog::log(
             'User banned',
@@ -79,16 +79,16 @@ class User extends Authenticatable implements MustVerifyEmail
             ['user_id' => $this->id, 'user_email' => $this->email, 'reason' => $reason]
         );
     }
-    
+
     /**
      * Unban this user
-     * 
+     *
      * @return void
      */
     public function unban(): void
     {
         $this->update(['is_banned' => false]);
-        
+
         // Log the unban
         ActivityLog::log(
             'User unbanned',
@@ -111,5 +111,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function transactions(): HasMany
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function bids(): HasMany
+    {
+        return $this->hasMany(Bid::class);
     }
 }
