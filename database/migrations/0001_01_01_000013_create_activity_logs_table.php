@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('log_type');
             $table->string('action');
-            $table->string('action_type');
-            $table->nullableMorphs('subject');
-            $table->json('properties')->nullable();
-            $table->string('ip_address')->nullable();
-            $table->string('user_agent')->nullable();
+            $table->morphs('loggable');
+            $table->text('description')->nullable();
+            $table->text('properties')->nullable();
+            $table->string('ip_address', 45)->nullable();
             $table->timestamps();
         });
     }
@@ -31,4 +31,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('activity_logs');
     }
-};
+}; 

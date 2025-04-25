@@ -160,16 +160,15 @@ class UserResource extends Resource
                     ->icon('heroicon-o-ban')
                     ->color('danger')
                     ->requiresConfirmation()
-                    ->action(function (User $user) {
-                        $user->is_banned = true;
-                        $user->save();
-
-                        ActivityLog::log(
-                            'Banned user',
-                            'user_ban',
-                            $user,
-                            ['user_id' => $user->id, 'user_email' => $user->email]
-                        );
+                    ->form([
+                        Forms\Components\Textarea::make('reason')
+                            ->label('Reason for ban (optional)')
+                            ->placeholder('Enter reason for the ban...')
+                            ->maxLength(500),
+                    ])
+                    ->action(function (User $user, array $data) {
+                        $reason = $data['reason'] ?? '';
+                        $user->ban($reason);
                     })
                     ->visible(fn (User $user) => !$user->is_banned),
                 Tables\Actions\Action::make('unban')
@@ -177,15 +176,7 @@ class UserResource extends Resource
                     ->color('success')
                     ->requiresConfirmation()
                     ->action(function (User $user) {
-                        $user->is_banned = false;
-                        $user->save();
-
-                        ActivityLog::log(
-                            'Unbanned user',
-                            'user_unban',
-                            $user,
-                            ['user_id' => $user->id, 'user_email' => $user->email]
-                        );
+                        $user->unban();
                     })
                     ->visible(fn (User $user) => $user->is_banned),
             ])
@@ -239,16 +230,16 @@ class UserResource extends Resource
                         ->label('Ban Selected')
                         ->icon('heroicon-o-ban')
                         ->color('danger')
-                        ->action(function ($records) {
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label('Reason for ban (optional)')
+                                ->placeholder('Enter reason for the ban...')
+                                ->maxLength(500),
+                        ])
+                        ->action(function ($records, array $data) {
+                            $reason = $data['reason'] ?? '';
                             foreach ($records as $record) {
-                                $record->is_banned = true;
-                                $record->save();
-                                ActivityLog::log(
-                                    'Banned user',
-                                    'user_ban',
-                                    $record,
-                                    ['user_id' => $record->id, 'user_email' => $record->email]
-                                );
+                                $record->ban($reason);
                             }
                         }),
                     Tables\Actions\BulkAction::make('unban')
@@ -257,14 +248,7 @@ class UserResource extends Resource
                         ->color('success')
                         ->action(function ($records) {
                             foreach ($records as $record) {
-                                $record->is_banned = false;
-                                $record->save();
-                                ActivityLog::log(
-                                    'Unbanned user',
-                                    'user_unban',
-                                    $record,
-                                    ['user_id' => $record->id, 'user_email' => $record->email]
-                                );
+                                $record->unban();
                             }
                         }),
                 ]),

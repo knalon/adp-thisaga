@@ -24,6 +24,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Illuminate\Support\Carbon;
+use App\Notifications\AppointmentStatusChanged;
 
 class AppointmentResource extends Resource
 {
@@ -152,8 +153,12 @@ class AppointmentResource extends Resource
                     ->requiresConfirmation()
                     ->visible(fn (Appointment $appointment) => $appointment->status === 'pending')
                     ->action(function (Appointment $appointment) {
+                        $previousStatus = $appointment->status;
                         $appointment->status = 'approved';
                         $appointment->save();
+
+                        // Send notification to user
+                        $appointment->user->notify(AppointmentStatusChanged::make($appointment, $previousStatus));
 
                         ActivityLog::log(
                             'Approved appointment',
@@ -172,8 +177,12 @@ class AppointmentResource extends Resource
                     ->requiresConfirmation()
                     ->visible(fn (Appointment $appointment) => $appointment->status === 'pending')
                     ->action(function (Appointment $appointment) {
+                        $previousStatus = $appointment->status;
                         $appointment->status = 'rejected';
                         $appointment->save();
+
+                        // Send notification to user
+                        $appointment->user->notify(AppointmentStatusChanged::make($appointment, $previousStatus));
 
                         ActivityLog::log(
                             'Rejected appointment',
@@ -192,8 +201,12 @@ class AppointmentResource extends Resource
                     ->requiresConfirmation()
                     ->visible(fn (Appointment $appointment) => $appointment->status === 'approved')
                     ->action(function (Appointment $appointment) {
+                        $previousStatus = $appointment->status;
                         $appointment->status = 'completed';
                         $appointment->save();
+
+                        // Send notification to user
+                        $appointment->user->notify(AppointmentStatusChanged::make($appointment, $previousStatus));
 
                         ActivityLog::log(
                             'Completed appointment',

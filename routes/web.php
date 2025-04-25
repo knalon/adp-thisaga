@@ -11,6 +11,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\PaymentController;
 
 // Guest Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -45,10 +46,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('/appointments/create/{car}', [AppointmentController::class, 'create'])->name('appointments.create');
         Route::post('/appointments/{appointment}/submit-bid', [AppointmentController::class, 'submitBid'])->name('appointments.submitBid');
-        
+
         // Transaction routes
         Route::get('/transactions/{transaction}/invoice', [App\Http\Controllers\TransactionController::class, 'generateInvoice'])->name('transaction.invoice');
         Route::patch('/transactions/{transaction}/pay', [App\Http\Controllers\TransactionController::class, 'markAsPaid'])->name('transaction.pay');
+
+        // Payment routes
+        Route::get('/payment/{transaction}', [PaymentController::class, 'process'])->name('payment.process');
+        Route::post('/payment/{transaction}/success', [PaymentController::class, 'success'])->name('payment.success');
+        Route::get('/payment/{transaction}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
     });
 
     // Admin routes
@@ -72,7 +78,7 @@ Route::middleware('auth')->group(function () {
         // Transactions
         Route::get('/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
         Route::post('/transactions/finalize/{appointment}', [TransactionController::class, 'finalize'])->name('admin.transactions.finalize');
-        
+
         // Invoice generation
         Route::get('/transactions/{transaction}/invoice', [InvoiceController::class, 'generateInvoice'])->name('transactions.invoice');
     });

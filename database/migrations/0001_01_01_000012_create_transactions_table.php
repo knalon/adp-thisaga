@@ -19,6 +19,9 @@ return new class extends Migration
             $table->decimal('final_price', 10, 2);
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
             $table->string('transaction_reference')->nullable();
+            $table->string('payment_method')->nullable();
+            $table->text('payment_details')->nullable();
+            $table->timestamp('payment_date')->nullable();
             $table->timestamps();
         });
     }
@@ -30,4 +33,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('transactions');
     }
-};
+}; 

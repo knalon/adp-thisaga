@@ -279,8 +279,7 @@ class CarResource extends Resource
                         ->color('warning')
                         ->action(function ($records) {
                             foreach ($records as $record) {
-                                $record->is_active = false;
-                                $record->save();
+                                $record->deactivate();
                                 ActivityLog::log(
                                     'Deactivated car listing',
                                     'car_deactivate',
@@ -295,8 +294,7 @@ class CarResource extends Resource
                         ->color('success')
                         ->action(function ($records) {
                             foreach ($records as $record) {
-                                $record->is_active = true;
-                                $record->save();
+                                $record->activate();
                                 ActivityLog::log(
                                     'Activated car listing',
                                     'car_activate',

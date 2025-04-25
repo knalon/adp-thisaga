@@ -3,9 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use App\Models\Vendor;
 use App\Enums\RolesEnum;
-use App\Enums\VendorStatusEnum;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Support\Facades\Hash;
@@ -23,16 +21,44 @@ class UserSeeder extends Seeder
             'email' => 'admin@abccars.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
+            'phone' => '1234567890',
+            'address' => '123 Admin Street',
+            'city' => 'Admin City',
+            'state' => 'Admin State',
+            'postal_code' => '12345',
+            'country' => 'USA',
+            'is_admin' => true,
         ]);
         $adminUser->assignRole(RolesEnum::Admin->value);
 
-        // Create test user
-        $testUser = User::create([
-            'name' => 'Test User',
-            'email' => 'user@abccars.com',
+        // Create seller test user
+        $sellerUser = User::create([
+            'name' => 'Seller User',
+            'email' => 'seller@abccars.com',
             'password' => Hash::make('password'),
             'email_verified_at' => now(),
+            'phone' => '9876543210',
+            'address' => '456 Seller Avenue',
+            'city' => 'Seller City',
+            'state' => 'Seller State',
+            'postal_code' => '54321',
+            'country' => 'USA',
         ]);
-        $testUser->assignRole(RolesEnum::User->value);
+        $sellerUser->assignRole(RolesEnum::User->value);
+        
+        // Create buyer test user
+        $buyerUser = User::create([
+            'name' => 'Buyer User',
+            'email' => 'buyer@abccars.com',
+            'password' => Hash::make('password'),
+            'email_verified_at' => now(),
+            'phone' => '5555555555',
+            'address' => '789 Buyer Blvd',
+            'city' => 'Buyer City',
+            'state' => 'Buyer State',
+            'postal_code' => '98765',
+            'country' => 'USA',
+        ]);
+        $buyerUser->assignRole(RolesEnum::User->value);
     }
 }

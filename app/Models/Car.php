@@ -48,6 +48,42 @@ class Car extends Model implements HasMedia
         });
     }
 
+    /**
+     * Activate this car listing
+     * 
+     * @return void
+     */
+    public function activate(): void
+    {
+        $this->update(['is_active' => true]);
+        
+        // Log the activation
+        ActivityLog::log(
+            'Car listing activated',
+            'car_activate',
+            $this,
+            ['car_id' => $this->id, 'car_make' => $this->make, 'car_model' => $this->model]
+        );
+    }
+    
+    /**
+     * Deactivate this car listing
+     * 
+     * @return void
+     */
+    public function deactivate(): void
+    {
+        $this->update(['is_active' => false]);
+        
+        // Log the deactivation
+        ActivityLog::log(
+            'Car listing deactivated',
+            'car_deactivate',
+            $this,
+            ['car_id' => $this->id, 'car_make' => $this->make, 'car_model' => $this->model]
+        );
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

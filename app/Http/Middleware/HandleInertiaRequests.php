@@ -52,6 +52,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'isAdmin' => $request->user() ? $request->user()->hasRole('admin') : false,
+                'isBanned' => $request->user() ? $request->user()->is_banned : false,
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),

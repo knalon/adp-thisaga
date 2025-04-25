@@ -14,11 +14,10 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            // Only use one permissions/role seeder to avoid conflicts
             PermissionSeeder::class,
-            RoleSeeder::class,
+            // RoleSeeder::class, // Commented out to prevent duplicate role creation
             UserSeeder::class,
-            DepartmentSeeder::class,
-            CategorySeeder::class,
         ]);
     }
 }

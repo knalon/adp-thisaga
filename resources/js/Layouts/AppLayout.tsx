@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { PageProps } from '@/types';
+import BanNotification from '@/Components/App/BanNotification';
 
 interface NavigationItem {
   name: string;
@@ -13,40 +14,46 @@ interface NavigationItem {
 interface UserNavigationItem {
   name: string;
   href: string;
+  method?: string;
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { auth } = usePage<PageProps>().props;
+  const userIsBanned = auth.isBanned;
 
   const isAdmin = auth.user?.roles.some(role => role.name === 'admin');
 
-  const navigation: NavigationItem[] = [
+  // Navigation for all users (authenticated and unauthenticated)
+  const publicNavigation: NavigationItem[] = [
     { name: 'Home', href: '/', current: route().current('home') },
     { name: 'Cars', href: '/cars', current: route().current('cars.index') },
     { name: 'About Us', href: '/about', current: route().current('about') },
     { name: 'Contact Us', href: '/contact', current: route().current('contact') },
   ];
 
-  // Add user-specific navigation items
+  // Add authenticated user-specific navigation items
   const userNavigation: NavigationItem[] = auth.user ? [
     { name: 'Dashboard', href: isAdmin ? '/admin/dashboard' : '/dashboard', current: route().current(isAdmin ? 'admin.dashboard' : 'dashboard') },
-    // Only show these for regular users
-    ...(!isAdmin ? [
-      { name: 'My Cars', href: '/cars/create', current: route().current('cars.create') },
-      { name: 'My Appointments', href: '/appointments', current: route().current('appointments.index') },
-    ] : []),
-    // Only show these for admin users
-    ...(isAdmin ? [
-      { name: 'Manage Users', href: '/admin/users', current: route().current('admin.users') },
-      { name: 'Manage Cars', href: '/admin/cars', current: route().current('admin.cars') },
-      { name: 'Manage Appointments', href: '/admin/appointments', current: route().current('admin.appointments') },
-      { name: 'Transactions', href: '/admin/transactions', current: route().current('admin.transactions') },
-    ] : []),
+    { name: 'Profile', href: '/profile', current: route().current('profile.edit') },
+  ] : [];
+
+  // Add admin-specific navigation items
+  const adminNavigation: NavigationItem[] = isAdmin ? [
+    { name: 'Manage Users', href: '/admin/users', current: route().current('admin.users') },
+    { name: 'Manage Cars', href: '/admin/cars', current: route().current('admin.cars') },
+    { name: 'Manage Appointments', href: '/admin/appointments', current: route().current('admin.appointments') },
+    { name: 'Transactions', href: '/admin/transactions', current: route().current('admin.transactions') },
+  ] : [];
+  
+  // Add authenticated user-specific navigation items (non-admin)
+  const regularUserNavigation: NavigationItem[] = (auth.user && !isAdmin) ? [
+    { name: 'My Cars', href: '/dashboard', current: route().current('dashboard') },
+    { name: 'My Appointments', href: '/appointments', current: route().current('appointments.index') },
   ] : [];
 
   const profileNavigation: UserNavigationItem[] = [
     { name: 'Your Profile', href: '/profile' },
-    { name: 'Sign out', href: '/logout' },
+    { name: 'Sign out', href: route('logout'), method: 'post' },
   ];
 
   function classNames(...classes: string[]) {
@@ -68,7 +75,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </div>
                   <div className="hidden md:block">
                     <div className="ml-10 flex items-baseline space-x-4">
-                      {navigation.map((item) => (
+                      {/* Public navigation available to all users */}
+                      {publicNavigation.map((item) => (
                         <Link
                           key={item.name}
                           href={item.href}
@@ -84,7 +92,42 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                         </Link>
                       ))}
 
+                      {/* Authenticated user common navigation */}
                       {auth.user && userNavigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={classNames(
+                            item.current
+                              ? 'bg-primary-focus text-white'
+                              : 'text-white hover:bg-primary-focus',
+                            'rounded-md px-3 py-2 text-sm font-medium'
+                          )}
+                          aria-current={item.current ? 'page' : undefined}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                      
+                      {/* Admin specific navigation */}
+                      {isAdmin && adminNavigation.map((item) => (
+                        <Link
+                          key={item.name}
+                          href={item.href}
+                          className={classNames(
+                            item.current
+                              ? 'bg-primary-focus text-white'
+                              : 'text-white hover:bg-primary-focus',
+                            'rounded-md px-3 py-2 text-sm font-medium'
+                          )}
+                          aria-current={item.current ? 'page' : undefined}
+                        >
+                          {item.name}
+                        </Link>
+                      ))}
+                      
+                      {/* Regular user specific navigation */}
+                      {!isAdmin && auth.user && regularUserNavigation.map((item) => (
                         <Link
                           key={item.name}
                           href={item.href}
@@ -129,6 +172,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                                 {({ active }) => (
                                   <Link
                                     href={item.href}
+                                    method={item.method}
+                                    as={item.method ? 'button' : undefined}
                                     className={classNames(
                                       active ? 'bg-gray-100' : '',
                                       'block px-4 py-2 text-sm text-gray-700'
@@ -176,7 +221,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
             <Disclosure.Panel className="md:hidden">
               <div className="space-y-1 px-2 pb-3 pt-2 sm:px-3">
-                {navigation.map((item) => (
+                {/* Public navigation for mobile */}
+                {publicNavigation.map((item) => (
                   <Disclosure.Button
                     key={item.name}
                     as={Link}
@@ -193,6 +239,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </Disclosure.Button>
                 ))}
 
+                {/* Authenticated user common navigation for mobile */}
                 {auth.user && userNavigation.map((item) => (
                   <Disclosure.Button
                     key={item.name}
@@ -209,7 +256,44 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {item.name}
                   </Disclosure.Button>
                 ))}
+                
+                {/* Admin specific navigation for mobile */}
+                {isAdmin && adminNavigation.map((item) => (
+                  <Disclosure.Button
+                    key={item.name}
+                    as={Link}
+                    href={item.href}
+                    className={classNames(
+                      item.current
+                        ? 'bg-primary-focus text-white'
+                        : 'text-white hover:bg-primary-focus',
+                      'block rounded-md px-3 py-2 text-base font-medium'
+                    )}
+                    aria-current={item.current ? 'page' : undefined}
+                  >
+                    {item.name}
+                  </Disclosure.Button>
+                ))}
+                
+                {/* Regular user specific navigation for mobile */}
+                {!isAdmin && auth.user && regularUserNavigation.map((item) => (
+                  <Disclosure.Button
+                    key={item.name}
+                    as={Link}
+                    href={item.href}
+                    className={classNames(
+                      item.current
+                        ? 'bg-primary-focus text-white'
+                        : 'text-white hover:bg-primary-focus',
+                      'block rounded-md px-3 py-2 text-base font-medium'
+                    )}
+                    aria-current={item.current ? 'page' : undefined}
+                  >
+                    {item.name}
+                  </Disclosure.Button>
+                ))}
               </div>
+              
               <div className="border-t border-gray-700 pb-3 pt-4">
                 {auth.user ? (
                   <div>
@@ -228,6 +312,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                           key={item.name}
                           as={Link}
                           href={item.href}
+                          method={item.method}
                           className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-primary-focus"
                         >
                           {item.name}
@@ -257,10 +342,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         )}
       </Disclosure>
 
-      <main>
-        <div className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
-          {children}
+      {userIsBanned && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+          <BanNotification />
         </div>
+      )}
+
+      <main className="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+        {children}
       </main>
 
       <footer className="bg-primary text-white py-8">

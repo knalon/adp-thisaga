@@ -26,6 +26,8 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->boolean('is_approved')->default(false);
             $table->string('slug')->unique();
+            $table->boolean('is_sold')->default(false);
+            $table->timestamp('sold_at')->nullable();
             $table->timestamps();
         });
     }
@@ -37,4 +39,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('cars');
     }
-};
+}; 

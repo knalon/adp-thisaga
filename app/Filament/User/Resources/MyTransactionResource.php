@@ -127,14 +127,14 @@ class MyTransactionResource extends Resource
                                     <h3>Transaction #{{ $transaction->id }}</h3>
                                     <p>Date: {{ $transaction->created_at->format("Y-m-d") }}</p>
                                 </div>
-                                
+
                                 <div class="invoice-details">
                                     <p><strong>From:</strong> CarDealership Inc.</p>
                                     <p><strong>To:</strong> {{ $transaction->user->name }}</p>
                                     <p><strong>Email:</strong> {{ $transaction->user->email }}</p>
                                     <p><strong>Transaction Ref:</strong> {{ $transaction->transaction_reference }}</p>
                                 </div>
-                                
+
                                 <table class="invoice-table">
                                     <thead>
                                         <tr>
@@ -157,7 +157,7 @@ class MyTransactionResource extends Resource
                                         </tr>
                                     </tfoot>
                                 </table>
-                                
+
                                 <div class="invoice-footer">
                                     <p>Thank you for your business!</p>
                                 </div>
@@ -173,29 +173,13 @@ class MyTransactionResource extends Resource
                             "invoice-{$record->id}.pdf"
                         );
                     }),
-                Tables\Actions\Action::make('mark_as_paid')
-                    ->label('Mark as Paid')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
+                Tables\Actions\Action::make('pay_now')
+                    ->label('Pay Now')
+                    ->icon('heroicon-o-credit-card')
+                    ->color('primary')
                     ->visible(fn (Transaction $record) => $record->status === 'pending')
-                    ->form([
-                        Forms\Components\TextInput::make('payment_reference')
-                            ->label('Payment Reference')
-                            ->required()
-                            ->maxLength(255),
-                    ])
-                    ->action(function (Transaction $record, array $data) {
-                        $record->update([
-                            'status' => 'paid',
-                            'transaction_reference' => $data['payment_reference'],
-                        ]);
-                        
-                        if ($record->car) {
-                            $record->car->update([
-                                'is_active' => false,
-                            ]);
-                        }
-                    }),
+                    ->url(fn (Transaction $record) => route('payment.process', ['transaction' => $record->id]))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -220,4 +204,4 @@ class MyTransactionResource extends Resource
             'view' => Pages\ViewMyTransaction::route('/{record}'),
         ];
     }
-} 
+}

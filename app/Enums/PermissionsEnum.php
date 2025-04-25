@@ -4,7 +4,8 @@ namespace App\Enums;
 
 enum PermissionsEnum: string
 {
- case ApproveVendors = 'ApproveVendors';
- case SellProducts = 'SellProducts';
- case BuyProducts = 'BuyProducts';
+    case ApproveCars = 'ApproveCars';
+    case ManageUsers = 'ManageUsers';
+    case ManageAppointments = 'ManageAppointments';
+    case ManageTransactions = 'ManageTransactions';
 }

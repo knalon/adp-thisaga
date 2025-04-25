@@ -1,20 +1,12 @@
 import React from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import MiniCartDropdown from './MiniCartDropdown';
 import { FormEventHandler, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
 import { MagnifyingGlassCircleIcon } from '@heroicons/react/24/outline';
 
-interface Department {
-  id: number;
-  name: string;
-  slug: string;
-}
-
 function Navbar() {
   const { props } = usePage();
   const auth = props.auth as { user: any | null };
-  const departments = props.departments as Department[] || [];
   const keyword = props.keyword as string || '';
   const { user } = auth;
 
@@ -37,7 +29,7 @@ function Navbar() {
     <>
     <div className="navbar bg-base-100">
   <div className="flex-1">
-          <Link href="/" className="btn btn-ghost text-xl">LaraStore</Link>
+          <Link href="/" className="btn btn-ghost text-xl">ABCCARS</Link>
   </div>
   <div className="flex-none gap-4">
     <form onSubmit={onSubmit} className="join flex-1">
@@ -56,7 +48,6 @@ function Navbar() {
         </button>
       </div>
     </form>
-    <MiniCartDropdown/> 
           {user && (
             <div className="dropdown dropdown-end">
       <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
@@ -90,11 +81,9 @@ function Navbar() {
     <div className={"navbar bg-base-100 border-t min-h-4"}>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1 z-20 py-0">
-            {departments.map((department: Department) => (
-            <li key={department.id}>
-              <Link href={route('product.byDepartment', department.slug)}>{department.name}</Link>
-            </li>
-          ))}
+          <li><Link href={route('cars.index')}>Browse Cars</Link></li>
+          <li><Link href={route('about')}>About Us</Link></li>
+          <li><Link href={route('contact')}>Contact</Link></li>
         </ul>
       </div>
     </div>

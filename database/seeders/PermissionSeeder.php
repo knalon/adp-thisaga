@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use App\Models\User;
+use App\Enums\RolesEnum;
 
 class PermissionSeeder extends Seeder
 {
@@ -61,45 +62,28 @@ class PermissionSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
-        $adminRole = Role::create(['name' => 'admin']);
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole = Role::firstOrCreate(['name' => RolesEnum::Admin->value]);
+        $adminRole->syncPermissions(Permission::all());
         
-        $userRole = Role::create(['name' => 'user']);
-        $userRole->givePermissionTo([
+        $userRole = Role::firstOrCreate(['name' => RolesEnum::User->value]);
+        $userRole->syncPermissions([
             'view_cars',
             'create_cars', 
             'edit_cars',
+            'delete_cars',
             'view_appointments',
             'create_appointments',
             'view_transactions',
         ]);
         
-        $managerRole = Role::create(['name' => 'manager']);
-        $managerRole->givePermissionTo([
-            'view_users',
-            'view_roles',
-            'view_cars',
-            'create_cars', 
-            'edit_cars',
-            'approve_cars',
-            'view_appointments',
-            'create_appointments',
-            'edit_appointments',
-            'approve_appointments',
-            'view_transactions',
-            'create_transactions',
-            'edit_transactions',
-            'view_activity_logs',
-        ]);
-        
-        // Assign admin role to the first user
+        // Assign admin role to the first user if it exists
         $user = User::first();
         if ($user) {
-            $user->assignRole('admin');
+            $user->assignRole(RolesEnum::Admin->value);
         }
     }
 } 

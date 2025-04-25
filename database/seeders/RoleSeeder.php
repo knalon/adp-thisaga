@@ -17,9 +17,9 @@ class RoleSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
-        // Create roles
-        $adminRole = Role::create(['name' => RolesEnum::Admin->value]);
-        $userRole = Role::create(['name' => RolesEnum::User->value]);
+        // Create roles if they don't exist
+        $adminRole = Role::firstOrCreate(['name' => RolesEnum::Admin->value]);
+        $userRole = Role::firstOrCreate(['name' => RolesEnum::User->value]);
 
         // Create permissions
         $permissions = [
@@ -43,14 +43,14 @@ class RoleSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Assign all permissions to admin
-        $adminRole->givePermissionTo(Permission::all());
+        $adminRole->syncPermissions(Permission::all());
 
         // Assign specific permissions to user role
-        $userRole->givePermissionTo([
+        $userRole->syncPermissions([
             'view cars',
             'create cars',
             'edit cars',

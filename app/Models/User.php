@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
+use App\Notifications\UserBanned;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -53,7 +53,49 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
+            'is_banned' => 'boolean',
         ];
+    }
+
+    /**
+     * Ban this user and send ban notification
+     * 
+     * @param string $reason Reason for the ban
+     * @return void
+     */
+    public function ban(string $reason = ''): void
+    {
+        $this->update(['is_banned' => true]);
+        
+        // Send ban notification
+        $this->notify(new UserBanned($reason));
+        
+        // Log the ban
+        ActivityLog::log(
+            'User banned',
+            'user_ban',
+            $this,
+            ['user_id' => $this->id, 'user_email' => $this->email, 'reason' => $reason]
+        );
+    }
+    
+    /**
+     * Unban this user
+     * 
+     * @return void
+     */
+    public function unban(): void
+    {
+        $this->update(['is_banned' => false]);
+        
+        // Log the unban
+        ActivityLog::log(
+            'User unbanned',
+            'user_unban',
+            $this,
+            ['user_id' => $this->id, 'user_email' => $this->email]
+        );
     }
 
     public function cars(): HasMany

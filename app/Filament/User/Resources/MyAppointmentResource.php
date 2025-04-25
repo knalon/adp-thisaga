@@ -33,7 +33,10 @@ class MyAppointmentResource extends Resource
                 Forms\Components\Section::make('Appointment Details')
                     ->schema([
                         Forms\Components\Select::make('car_id')
-                            ->relationship('car', 'make', fn (Builder $query) => $query->where('is_active', true))
+                            ->relationship('car', 'make', fn (Builder $query) => $query
+                                ->where('is_active', true)
+                                ->where('is_approved', true)
+                                ->where('user_id', '!=', Auth::id()))
                             ->searchable()
                             ->preload()
                             ->required()
@@ -152,4 +155,4 @@ class MyAppointmentResource extends Resource
             'view' => Pages\ViewMyAppointment::route('/{record}'),
         ];
     }
-} 
+}
