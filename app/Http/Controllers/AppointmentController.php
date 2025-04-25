@@ -100,7 +100,7 @@ class AppointmentController extends Controller
         $car = $appointment->car;
 
         // Check if the bid is higher than the current highest bid
-        $currentHighestBid = $car->appointments()
+        $currentHighestBid = $appointment->car->appointments()
             ->where('status', 'approved')
             ->whereNotNull('bid_price')
             ->max('bid_price');

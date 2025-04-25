@@ -10,6 +10,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use App\Enums\RolesEnum;
 use Spatie\Permission\Models\Role;
+use App\Notifications\AppointmentStatusChanged;
 
 class AdminController extends Controller
 {
@@ -125,8 +126,7 @@ class AdminController extends Controller
         $appointment->update(['status' => 'approved']);
         
         // Notify the user about the appointment approval
-        $car = $appointment->car;
-        $appointment->user->notify(new \App\Notifications\AppointmentStatusChanged($appointment, $car, $previousStatus));
+        $appointment->user->notify(new AppointmentStatusChanged($appointment, $previousStatus));
 
         return back()->with('success', 'Appointment approved successfully.');
     }
@@ -137,8 +137,7 @@ class AdminController extends Controller
         $appointment->update(['status' => 'rejected']);
         
         // Notify the user about the appointment rejection
-        $car = $appointment->car;
-        $appointment->user->notify(new \App\Notifications\AppointmentStatusChanged($appointment, $car, $previousStatus));
+        $appointment->user->notify(new AppointmentStatusChanged($appointment, $previousStatus));
 
         return back()->with('success', 'Appointment rejected.');
     }

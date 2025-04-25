@@ -2,25 +2,24 @@
 
 namespace App\Providers\Filament;
 
-use App\Enums\RolesEnum;
+use App\Filament\Pages\Dashboard;
+use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
-use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Boot;
 use Filament\Support\Colors\Color;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Illuminate\Database\Eloquent\Model;
-
+use App\Enums\RolesEnum;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -30,11 +29,18 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->sidebarWidth('14rem')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Teal,
+                'gray' => Color::Slate,
+                'danger' => Color::Rose,
+                'info' => Color::Blue,
+                'success' => Color::Emerald,
+                'warning' => Color::Orange,
             ])
+            ->brandName('ABC Cars Admin')
+            ->brandLogo(asset('images/logo.png'))
+            ->favicon(asset('images/favicon.ico'))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -55,20 +61,25 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                'auth',
-                sprintf('role:%s|%s',
-                          RolesEnum::Admin->value,
-                          RolesEnum::Vendor->value,
-                )
             ])
-//            ->authMiddleware([
-//               Authenticate::class,
-//           ])
-            ;
-    }
-
-    public function boot()
-    {
-        Model::unguard();
+            ->authMiddleware([
+                Authenticate::class,
+            ])
+            ->authGuard('web')
+            ->registration(false)
+            ->passwordReset()
+            ->profile()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
+            ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
+            ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                'User Management',
+                'Car Management',
+                'Transactions',
+                'Appointments',
+                'Reports',
+                'Settings',
+            ]);
     }
 }

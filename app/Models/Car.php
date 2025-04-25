@@ -27,7 +27,16 @@ class Car extends Model implements HasMedia
         'fuel_type',
         'is_active',
         'is_approved',
+        'is_sold',
+        'sold_at',
         'slug',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'is_approved' => 'boolean',
+        'is_sold' => 'boolean',
+        'sold_at' => 'datetime',
     ];
 
     protected static function boot()

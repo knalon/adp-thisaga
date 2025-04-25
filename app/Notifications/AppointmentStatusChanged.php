@@ -2,98 +2,89 @@
 
 namespace App\Notifications;
 
-use App\Models\Car;
 use App\Models\Appointment;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+use Filament\Notifications\Actions\Action;
+use Filament\Notifications\Notification as FilamentNotification;
 
 class AppointmentStatusChanged extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    protected $appointment;
-    protected $car;
-    protected $previousStatus;
+    protected Appointment $appointment;
+    protected string $previousStatus;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(Appointment $appointment, Car $car, string $previousStatus)
+    public function __construct(Appointment $appointment, string $previousStatus)
     {
         $this->appointment = $appointment;
-        $this->car = $car;
         $this->previousStatus = $previousStatus;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
-    public function via(object $notifiable): array
+    public function via($notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
-    public function toMail(object $notifiable): MailMessage
+    public function toMail($notifiable): MailMessage
     {
-        $url = url("/appointments");
-        $statusVerb = $this->getStatusVerb();
+        $message = (new MailMessage)
+            ->subject('Appointment Status Updated')
+            ->greeting('Hello ' . $notifiable->name . '!')
+            ->line('Your appointment status has been updated from ' . $this->previousStatus . ' to ' . $this->appointment->status . '.');
 
-        $mail = (new MailMessage)
-                    ->subject('Test Drive Appointment Status Update')
-                    ->greeting('Hello ' . $notifiable->name . '!')
-                    ->line('Your test drive appointment for ' . $this->car->make . ' ' . $this->car->model . ' has been ' . $statusVerb . '.')
-                    ->line('Appointment date: ' . $this->appointment->appointment_date->format('F j, Y \a\t g:i A'))
-                    ->action('View Appointment Details', $url);
-
+        // Different lines depending on the status
         if ($this->appointment->status === 'approved') {
-            $mail->line('You can now submit a bid for this car.');
+            $message->line('Great news! Your appointment has been approved. Please make sure to attend at the scheduled time.')
+                   ->line('Date and Time: ' . $this->appointment->appointment_date->format('F j, Y, g:i a'));
         } elseif ($this->appointment->status === 'rejected') {
-            $mail->line('If you have any questions, please contact our support team.');
+            $message->line('Unfortunately, your appointment request has been rejected. You might want to try scheduling at a different time.');
         } elseif ($this->appointment->status === 'completed') {
-            $mail->line('Thank you for using our car sales platform!');
+            $message->line('Your appointment has been marked as completed. We hope you had a great experience!');
         }
 
-        return $mail;
+        return $message
+            ->action('View Appointment', url('/dashboard/appointments/' . $this->appointment->id))
+            ->line('Thank you for using our service!');
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @return array<string, mixed>
-     */
-    public function toArray(object $notifiable): array
+    public function toDatabase($notifiable): array
     {
+        $statusLabels = [
+            'pending' => 'Pending',
+            'approved' => 'Approved',
+            'rejected' => 'Rejected',
+            'completed' => 'Completed',
+            'canceled' => 'Canceled',
+        ];
+
+        $previousStatusLabel = $statusLabels[$this->previousStatus] ?? $this->previousStatus;
+        $currentStatusLabel = $statusLabels[$this->appointment->status] ?? $this->appointment->status;
+
         return [
             'appointment_id' => $this->appointment->id,
-            'car_id' => $this->car->id,
-            'previous_status' => $this->previousStatus,
-            'current_status' => $this->appointment->status,
-            'message' => 'Your test drive appointment for ' . $this->car->make . ' ' . $this->car->model . ' has been ' . $this->getStatusVerb() . '.',
-            'type' => 'appointment_status_changed',
+            'car_id' => $this->appointment->car_id,
+            'message' => "Appointment status changed from {$previousStatusLabel} to {$currentStatusLabel}",
+            'url' => '/dashboard/appointments/' . $this->appointment->id,
         ];
     }
 
-    /**
-     * Get the appropriate verb for the status.
-     */
-    private function getStatusVerb(): string
+    public static function make(Appointment $appointment, string $previousStatus): self
     {
-        switch ($this->appointment->status) {
-            case 'approved':
-                return 'approved';
-            case 'rejected':
-                return 'rejected';
-            case 'completed':
-                return 'marked as completed';
-            default:
-                return 'updated';
-        }
+        // Also send a Filament notification in the UI
+        FilamentNotification::make()
+            ->title('Appointment Status Updated')
+            ->body("Your appointment status has been updated from {$previousStatus} to {$appointment->status}.")
+            ->success()
+            ->actions([
+                Action::make('view')
+                    ->button()
+                    ->url("/dashboard/appointments/{$appointment->id}"),
+            ])
+            ->sendToDatabase($appointment->user);
+
+        return new static($appointment, $previousStatus);
     }
 }

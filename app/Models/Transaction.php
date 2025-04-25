@@ -14,13 +14,33 @@ class Transaction extends Model
         'user_id',
         'car_id',
         'appointment_id',
-        'final_price',
+        'amount',
         'status',
-        'transaction_reference',
+        'payment_method',
+        'transaction_id',
+        'payment_date',
+        'notes',
+        'receipt',
+        'shipping_status',
     ];
 
     protected $casts = [
-        'final_price' => 'decimal:2',
+        'amount' => 'decimal:2',
+        'payment_date' => 'datetime',
+    ];
+
+    public const PAYMENT_STATUS = [
+        'pending' => 'Pending',
+        'paid' => 'Paid',
+        'failed' => 'Failed',
+        'refunded' => 'Refunded',
+    ];
+
+    public const SHIPPING_STATUS = [
+        'pending' => 'Pending',
+        'processing' => 'Processing',
+        'shipped' => 'Shipped',
+        'delivered' => 'Delivered',
     ];
 
     public function user(): BelongsTo

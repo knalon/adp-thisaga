@@ -7,53 +7,49 @@ use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Appointment;
 use App\Models\Transaction;
+use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use App\Notifications\TransactionFinalized;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransactionController extends Controller
 {
     public function finalize(Request $request, Appointment $appointment)
     {
-        // Check if appointment is approved and has a bid
-        if ($appointment->status !== 'approved' || $appointment->bid_price === null) {
-            return back()->withErrors(['appointment' => 'Cannot finalize this appointment.']);
+        // Check if the appointment is already finalized
+        if ($appointment->transaction()->exists()) {
+            return back()->with('error', 'This appointment already has a transaction.');
         }
 
-        // Check if car is still active and approved
-        $car = $appointment->car;
-        if (!$car->is_active || !$car->is_approved) {
-            return back()->withErrors(['car' => 'This car is no longer available.']);
-        }
-
+        // Validate the request
         $validated = $request->validate([
-            'final_price' => 'required|numeric|min:0',
+            'amount' => 'required|numeric|min:0',
         ]);
 
-        // Create transaction
+        // Create the transaction
         $transaction = Transaction::create([
             'user_id' => $appointment->user_id,
-            'car_id' => $car->id,
+            'car_id' => $appointment->car_id,
             'appointment_id' => $appointment->id,
-            'final_price' => $validated['final_price'],
-            'status' => 'completed',
-            'transaction_reference' => 'TR-' . Str::upper(Str::random(10)),
+            'amount' => $validated['amount'],
+            'status' => 'pending',
         ]);
 
-        // Mark appointment as completed
-        $appointment->update(['status' => 'completed']);
+        // Log the activity
+        ActivityLog::log(
+            'Created transaction',
+            'transaction_create',
+            $transaction,
+            [
+                'transaction_id' => $transaction->id,
+                'amount' => $transaction->amount,
+                'user_id' => $transaction->user_id,
+            ]
+        );
 
-        // Deactivate the car
-        $car->update(['is_active' => false]);
-
-        // Notify the buyer
-        $appointment->user->notify(new TransactionFinalized($transaction, $car));
-
-        // Also notify the seller
-        $car->user->notify(new TransactionFinalized($transaction, $car));
-
-        return redirect()->route('admin.transactions')->with('success', 'Transaction finalized successfully.');
+        return back()->with('success', 'Transaction finalized successfully.');
     }
 
     public function userTransactions()
@@ -67,5 +63,68 @@ class TransactionController extends Controller
         return Inertia::render('User/Transactions', [
             'transactions' => $transactions,
         ]);
+    }
+
+    public function generateInvoice(Transaction $transaction)
+    {
+        // Check if the user is authorized to view this invoice
+        if (Auth::id() !== $transaction->user_id && !Auth::user()->roles->pluck('name')->contains('admin')) {
+            abort(403, 'Unauthorized');
+        }
+
+        $data = [
+            'transaction' => $transaction,
+            'car' => $transaction->appointment->car,
+            'seller' => $transaction->appointment->car->user,
+            'buyer' => $transaction->user,
+            'date' => now()->format('F d, Y'),
+            'invoice_number' => 'INV-' . str_pad($transaction->id, 6, '0', STR_PAD_LEFT),
+        ];
+
+        $pdf = PDF::loadView('invoices.transaction', $data);
+        
+        return $pdf->download('invoice-' . $data['invoice_number'] . '.pdf');
+    }
+    
+    public function markAsPaid(Request $request, Transaction $transaction)
+    {
+        // Check if the user is authorized
+        if (Auth::id() !== $transaction->user_id) {
+            abort(403, 'Unauthorized');
+        }
+        
+        // Validate the request
+        $validated = $request->validate([
+            'payment_method' => 'required|string|in:cash,credit_card,debit_card,bank_transfer,check,other',
+            'transaction_id' => 'nullable|string|max:255',
+        ]);
+        
+        // Update the transaction
+        $transaction->status = 'paid';
+        $transaction->payment_method = $validated['payment_method'];
+        $transaction->transaction_id = $validated['transaction_id'] ?? null;
+        $transaction->payment_date = now();
+        $transaction->save();
+        
+        // Update car status to sold
+        $car = $transaction->appointment->car;
+        $car->is_active = false;
+        $car->is_sold = true;
+        $car->sold_at = now();
+        $car->save();
+        
+        // Log the activity
+        ActivityLog::log(
+            'Marked transaction as paid',
+            'transaction_paid',
+            $transaction,
+            [
+                'transaction_id' => $transaction->id,
+                'amount' => $transaction->amount,
+                'user_id' => $transaction->user_id,
+            ]
+        );
+        
+        return back()->with('success', 'Payment recorded successfully.');
     }
 }

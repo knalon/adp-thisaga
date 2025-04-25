@@ -10,11 +10,13 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\Admin\InvoiceController;
 
 // Guest Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 Route::get('/cars', [CarController::class, 'index'])->name('cars.index');
 Route::get('/cars/{car:slug}', [CarController::class, 'show'])->name('cars.show');
 
@@ -43,6 +45,10 @@ Route::middleware('auth')->group(function () {
         Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('/appointments/create/{car}', [AppointmentController::class, 'create'])->name('appointments.create');
         Route::post('/appointments/{appointment}/submit-bid', [AppointmentController::class, 'submitBid'])->name('appointments.submitBid');
+        
+        // Transaction routes
+        Route::get('/transactions/{transaction}/invoice', [App\Http\Controllers\TransactionController::class, 'generateInvoice'])->name('transaction.invoice');
+        Route::patch('/transactions/{transaction}/pay', [App\Http\Controllers\TransactionController::class, 'markAsPaid'])->name('transaction.pay');
     });
 
     // Admin routes
@@ -66,6 +72,9 @@ Route::middleware('auth')->group(function () {
         // Transactions
         Route::get('/transactions', [AdminController::class, 'transactions'])->name('admin.transactions');
         Route::post('/transactions/finalize/{appointment}', [TransactionController::class, 'finalize'])->name('admin.transactions.finalize');
+        
+        // Invoice generation
+        Route::get('/transactions/{transaction}/invoice', [InvoiceController::class, 'generateInvoice'])->name('transactions.invoice');
     });
 });
 

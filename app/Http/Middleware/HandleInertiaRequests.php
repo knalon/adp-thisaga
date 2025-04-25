@@ -4,11 +4,10 @@ namespace App\Http\Middleware;
 
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
-use App\Models\Department;
+use App\Models\Car;
 use Illuminate\Http\Request;
-use App\Services\CartService;
-use App\Http\Resources\DepartmentResource;
-
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -34,16 +33,17 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $cartService = app(CartService::class);
-        $totalQuantity = $cartService->getTotalQuantity();
-        $totalPrice = $cartService->getTotalPrice();
+        // Get featured cars for the navigation
+        $featuredCars = [];
 
-        $cartItems = $cartService->getCartItems();
-
-        $departments = Department::published()
-        ->with('categories')
-        ->get();
-
+        // Only query for cars if the table exists
+        if (Schema::hasTable('cars')) {
+            $featuredCars = Car::where('is_approved', true)
+                ->where('is_active', true)
+                ->latest()
+                ->take(5)
+                ->get();
+        }
 
         return [
             ...parent::share($request),
@@ -51,6 +51,7 @@ class HandleInertiaRequests extends Middleware
             'csrf_token' => csrf_token(),
             'auth' => [
                 'user' => $request->user(),
+                'isAdmin' => $request->user() ? $request->user()->hasRole('admin') : false,
             ],
             'ziggy' => fn () => [
                 ...(new Ziggy)->toArray(),
@@ -61,11 +62,15 @@ class HandleInertiaRequests extends Middleware
                 'time' => microtime(true),
             ],
             'error' => session('error'),
-            'totalPrice' => $totalPrice,
-            'totalQuantity' => $totalQuantity,
-            'miniCartItems' => $cartItems,
-            'departments' => DepartmentResource::collection($departments)->collection->toArray(),
-           'keyword' => $request->query('keyword')
+            'featuredCars' => $featuredCars,
+            'keyword' => $request->query('keyword'),
+            'filters' => [
+                'make' => $request->query('make'),
+                'model' => $request->query('model'),
+                'year' => $request->query('year'),
+                'price_min' => $request->query('price_min'),
+                'price_max' => $request->query('price_max'),
+            ],
         ];
     }
 }
