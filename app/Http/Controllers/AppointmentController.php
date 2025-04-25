@@ -100,7 +100,7 @@ class AppointmentController extends Controller
         $car = $appointment->car;
 
         // Check if the bid is higher than the current highest bid
-        $currentHighestBid = $appointment->car->appointments()
+        $currentHighestBid = $car->appointments()
             ->where('status', 'approved')
             ->whereNotNull('bid_price')
             ->max('bid_price');
@@ -116,7 +116,8 @@ class AppointmentController extends Controller
 
         // Notify car owner and administrators about the new bid
         $user = User::findOrFail(Auth::id());
-        $car->user->notify(new BidSubmitted($appointment, $car, $user));
+        $carModel = Car::findOrFail($car->id);
+        $car->user->notify(new BidSubmitted($appointment, $carModel, $user));
 
         return redirect()->route('cars.show', $car->slug)->with('success', 'Bid submitted successfully.');
     }

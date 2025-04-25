@@ -172,6 +172,7 @@ export interface Car {
   mileage: string | null;
   transmission: string | null;
   fuel_type: string | null;
+  body_type: string | null;
   is_active: boolean;
   is_approved: boolean;
   slug: string;

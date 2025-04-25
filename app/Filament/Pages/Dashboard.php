@@ -31,4 +31,4 @@ class Dashboard extends BaseDashboard
             LatestActivities::class,
         ];
     }
-} 
+}

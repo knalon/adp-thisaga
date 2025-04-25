@@ -62,4 +62,4 @@ class SoldCarsOverview extends BaseWidget
                 ->color('warning'),
         ];
     }
-} 
+}
