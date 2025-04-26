@@ -3,6 +3,15 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Appointment, PageProps } from '@/types';
 import { Dialog, Transition } from '@headlessui/react';
+import {
+  UsersIcon,
+  TruckIcon,
+  CalendarIcon,
+  CreditCardIcon,
+  ChartBarIcon,
+  CogIcon,
+  PlusCircleIcon
+} from '@heroicons/react/24/outline';
 
 // Update the Props interface to satisfy Record<string, unknown>
 interface Props extends Record<string, unknown> {
@@ -24,12 +33,25 @@ interface Props extends Record<string, unknown> {
   };
 }
 
+interface AdminSidebarItem {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  current: boolean;
+}
+
 export default function AdminAppointments({ pendingAppointments, approvedAppointments, rejectedAppointments, biddedAppointments }: PageProps<Props>) {
   const [activeTab, setActiveTab] = useState('pending');
   const [finalizeModal, setFinalizeModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [finalPrice, setFinalPrice] = useState('');
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+
+  // Initialize appointments with default empty values
+  const pending = pendingAppointments?.data || [];
+  const approved = approvedAppointments?.data || [];
+  const rejected = rejectedAppointments?.data || [];
+  const bidded = biddedAppointments?.data || [];
 
   const handleApprove = (appointment: Appointment) => {
     if (confirm('Are you sure you want to approve this appointment?')) {
@@ -59,9 +81,9 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
 
   const handleFinalize = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedAppointment) return;
-    
+
     router.post(route('admin.transactions.finalize', selectedAppointment.id), {
       final_price: finalPrice,
     }, {
@@ -91,31 +113,31 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
 
           {/* Tabs */}
           <div className="tabs tabs-boxed mb-6">
-            <a 
+            <a
               className={`tab ${activeTab === 'pending' ? 'tab-active' : ''}`}
               onClick={() => setActiveTab('pending')}
             >
               Pending
               <span className="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">
-                {pendingAppointments.data.length}
+                {pending.length}
               </span>
             </a>
-            <a 
+            <a
               className={`tab ${activeTab === 'approved' ? 'tab-active' : ''}`}
               onClick={() => setActiveTab('approved')}
             >
               Approved
             </a>
-            <a 
+            <a
               className={`tab ${activeTab === 'bids' ? 'tab-active' : ''}`}
               onClick={() => setActiveTab('bids')}
             >
               Bids
               <span className="ml-2 px-2 py-1 bg-secondary text-white text-xs rounded-full">
-                {biddedAppointments.data.length}
+                {bidded.length}
               </span>
             </a>
-            <a 
+            <a
               className={`tab ${activeTab === 'rejected' ? 'tab-active' : ''}`}
               onClick={() => setActiveTab('rejected')}
             >
@@ -141,8 +163,8 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                     </tr>
                   </thead>
                   <tbody>
-                    {pendingAppointments.data.length > 0 ? (
-                      pendingAppointments.data.map((appointment) => (
+                    {pending.length > 0 ? (
+                      pending.map((appointment) => (
                         <tr key={appointment.id}>
                           <td>
                             <Link href={route('cars.show', appointment.car?.slug)} className="hover:underline">
@@ -197,8 +219,8 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                     </tr>
                   </thead>
                   <tbody>
-                    {approvedAppointments.data.length > 0 ? (
-                      approvedAppointments.data.map((appointment) => (
+                    {approved.length > 0 ? (
+                      approved.map((appointment) => (
                         <tr key={appointment.id}>
                           <td>
                             <Link href={route('cars.show', appointment.car?.slug)} className="hover:underline">
@@ -243,8 +265,8 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                     </tr>
                   </thead>
                   <tbody>
-                    {biddedAppointments.data.length > 0 ? (
-                      biddedAppointments.data.map((appointment) => (
+                    {bidded.length > 0 ? (
+                      bidded.map((appointment) => (
                         <tr key={appointment.id}>
                           <td>
                             <Link href={route('cars.show', appointment.car?.slug)} className="hover:underline">
@@ -298,8 +320,8 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                     </tr>
                   </thead>
                   <tbody>
-                    {rejectedAppointments.data.length > 0 ? (
-                      rejectedAppointments.data.map((appointment) => (
+                    {rejected.length > 0 ? (
+                      rejected.map((appointment) => (
                         <tr key={appointment.id}>
                           <td>
                             <Link href={route('cars.show', appointment.car?.slug)} className="hover:underline">
@@ -353,7 +375,7 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
             >
               &#8203;
             </span>
-            
+
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"
@@ -370,7 +392,7 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                 >
                   Finalize Transaction
                 </Dialog.Title>
-                
+
                 {selectedAppointment && (
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
@@ -385,7 +407,7 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                     <p className="text-sm mt-1">
                       <span className="font-medium">Bid Amount:</span> ${selectedAppointment.bid_price?.toLocaleString()}
                     </p>
-                    
+
                     <form onSubmit={handleFinalize} className="mt-4">
                       <div>
                         <label htmlFor="final_price" className="block text-sm font-medium text-gray-700">
@@ -405,7 +427,7 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
                           <p className="text-red-500 text-xs mt-1">{formErrors.final_price}</p>
                         )}
                       </div>
-                      
+
                       <div className="mt-6 flex justify-end gap-3">
                         <button
                           type="button"
@@ -431,4 +453,4 @@ export default function AdminAppointments({ pendingAppointments, approvedAppoint
       </Transition>
     </AppLayout>
   );
-} 
+}

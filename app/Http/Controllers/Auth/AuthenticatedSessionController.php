@@ -28,22 +28,20 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): \Symfony\Component\HttpFoundation\Response
-    { 
+    public function store(LoginRequest $request): RedirectResponse
+    {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        /**@var User $user */
-        $user = Auth::user();
-        $route = "/";
-        if ($user->hasAnyRole([RolesEnum::Admin])) {
-            return Inertia::location(route('filament.admin.pages.dashboard'));
-        } else {
-            $route = route('dashboard', absolute: false);
+        $user = $request->user();
+
+        // Check if user is admin and redirect accordingly
+        if ($user->hasRole('admin')) {
+            return redirect()->intended(route('admin.dashboard'));
         }
 
-        return redirect()->intended($route);
+        return redirect()->intended(route('dashboard'));
     }
 
     /**

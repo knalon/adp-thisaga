@@ -17,15 +17,15 @@ interface UserSidebarItem {
   current: boolean;
 }
 
-export default function Dashboard({ auth }: PageProps) {
+export default function UserDashboard({ auth }: PageProps) {
   const [activeSection, setActiveSection] = useState('overview');
 
   // User navigation items with icons
   const userSidebarItems: UserSidebarItem[] = [
-    { name: 'Overview', href: '/dashboard', icon: UserIcon, current: activeSection === 'overview' },
-    { name: 'My Cars', href: '/dashboard/cars', icon: TruckIcon, current: activeSection === 'cars' },
-    { name: 'My Appointments', href: '/appointments', icon: CalendarIcon, current: activeSection === 'appointments' },
-    { name: 'Saved Cars', href: '/dashboard/saved', icon: HeartIcon, current: activeSection === 'saved' },
+    { name: 'Overview', href: '/user/dashboard', icon: UserIcon, current: activeSection === 'overview' },
+    { name: 'My Cars', href: '/user/cars', icon: TruckIcon, current: activeSection === 'cars' },
+    { name: 'My Appointments', href: '/user/appointments', icon: CalendarIcon, current: activeSection === 'appointments' },
+    { name: 'Saved Cars', href: '/user/saved', icon: HeartIcon, current: activeSection === 'saved' },
     { name: 'Settings', href: '/profile', icon: CogIcon, current: activeSection === 'settings' },
   ];
 
@@ -35,7 +35,7 @@ export default function Dashboard({ auth }: PageProps) {
 
   return (
     <AppLayout>
-      <Head title="Dashboard" />
+      <Head title="User Dashboard" />
 
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
@@ -108,7 +108,7 @@ export default function Dashboard({ auth }: PageProps) {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">My Cars</p>
-                        <p className="text-2xl font-semibold">2</p>
+                        <p className="text-2xl font-semibold">0</p>
                       </div>
                     </div>
                   </div>
@@ -120,7 +120,7 @@ export default function Dashboard({ auth }: PageProps) {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Appointments</p>
-                        <p className="text-2xl font-semibold">1</p>
+                        <p className="text-2xl font-semibold">0</p>
                       </div>
                     </div>
                   </div>
@@ -132,16 +132,25 @@ export default function Dashboard({ auth }: PageProps) {
                       </div>
                       <div>
                         <p className="text-sm text-gray-500">Saved Cars</p>
-                        <p className="text-2xl font-semibold">5</p>
+                        <p className="text-2xl font-semibold">0</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Recent Activity */}
+                {/* Quick Actions */}
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                  <Link href="/user/cars" className="btn btn-primary">My Cars</Link>
+                  <Link href="/user/appointments" className="btn btn-secondary">My Appointments</Link>
+                  <Link href="/user/saved" className="btn btn-accent">Saved Cars</Link>
+                  <Link href="/profile" className="btn btn-outline">My Profile</Link>
+                </div>
+
+                {/* Get Started Guide */}
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
                   <div className="p-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">Recent Activity</h3>
+                    <h3 className="text-lg font-medium text-gray-900">Getting Started</h3>
                   </div>
                   <div className="p-4">
                     <ul className="divide-y divide-gray-200">
@@ -151,8 +160,9 @@ export default function Dashboard({ auth }: PageProps) {
                             <TruckIcon className="h-5 w-5 text-green-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">You listed a new car: Toyota Camry 2019</p>
-                            <p className="text-sm text-gray-500">2 days ago</p>
+                            <p className="text-sm font-medium text-gray-900">List your car for sale</p>
+                            <p className="text-sm text-gray-500">Create your first car listing in just a few steps</p>
+                            <Link href="/user/cars/create" className="btn btn-xs btn-primary mt-1">Add Car</Link>
                           </div>
                         </div>
                       </li>
@@ -162,8 +172,9 @@ export default function Dashboard({ auth }: PageProps) {
                             <CalendarIcon className="h-5 w-5 text-yellow-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Scheduled appointment for BMW X5</p>
-                            <p className="text-sm text-gray-500">1 week ago</p>
+                            <p className="text-sm font-medium text-gray-900">Schedule a test drive</p>
+                            <p className="text-sm text-gray-500">Browse available cars and schedule a viewing</p>
+                            <Link href="/cars" className="btn btn-xs btn-secondary mt-1">Browse Cars</Link>
                           </div>
                         </div>
                       </li>
@@ -173,8 +184,9 @@ export default function Dashboard({ auth }: PageProps) {
                             <HeartIcon className="h-5 w-5 text-red-500" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">Saved a car to favorites: Honda Civic</p>
-                            <p className="text-sm text-gray-500">2 weeks ago</p>
+                            <p className="text-sm font-medium text-gray-900">Save your favorite cars</p>
+                            <p className="text-sm text-gray-500">Create a collection of vehicles you're interested in</p>
+                            <Link href="/cars" className="btn btn-xs btn-accent mt-1">Explore</Link>
                           </div>
                         </div>
                       </li>

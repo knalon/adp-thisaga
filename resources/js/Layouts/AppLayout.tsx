@@ -25,34 +25,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Navigation for all users (authenticated and unauthenticated)
   const publicNavigation: NavigationItem[] = [
-    { name: 'Home', href: '/', current: route().current('home') },
     { name: 'Cars', href: '/cars', current: route().current('cars.index') },
     { name: 'About Us', href: '/about', current: route().current('about') },
     { name: 'Contact Us', href: '/contact', current: route().current('contact') },
   ];
 
-  // Add authenticated user-specific navigation items
-  const userNavigation: NavigationItem[] = auth.user ? [
-    { name: 'Dashboard', href: isAdmin ? '/admin/dashboard' : '/dashboard', current: route().current(isAdmin ? 'admin.dashboard' : 'dashboard') },
-    { name: 'Profile', href: '/profile', current: route().current('profile.edit') },
-  ] : [];
-
-  // Add admin-specific navigation items
-  const adminNavigation: NavigationItem[] = isAdmin ? [
-    { name: 'Manage Users', href: '/admin/users', current: route().current('admin.users') },
-    { name: 'Manage Cars', href: '/admin/cars', current: route().current('admin.cars') },
-    { name: 'Manage Appointments', href: '/admin/appointments', current: route().current('admin.appointments') },
-    { name: 'Transactions', href: '/admin/transactions', current: route().current('admin.transactions') },
-  ] : [];
-  
-  // Add authenticated user-specific navigation items (non-admin)
-  const regularUserNavigation: NavigationItem[] = (auth.user && !isAdmin) ? [
-    { name: 'My Cars', href: '/dashboard', current: route().current('dashboard') },
-    { name: 'My Appointments', href: '/appointments', current: route().current('appointments.index') },
-  ] : [];
-
-  const profileNavigation: UserNavigationItem[] = [
+  // Profile dropdown items - for Admin
+  const adminProfileNavigation: UserNavigationItem[] = [
     { name: 'Your Profile', href: '/profile' },
+    { name: 'Admin Dashboard', href: '/admin/dashboard' },
+    { name: 'Sign out', href: route('logout'), method: 'post' },
+  ];
+
+  // Profile dropdown items - for Regular User
+  const userProfileNavigation: UserNavigationItem[] = [
+    { name: 'Your Profile', href: '/profile' },
+    { name: 'User Dashboard', href: '/dashboard' },
     { name: 'Sign out', href: route('logout'), method: 'post' },
   ];
 
@@ -70,64 +58,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <Link href="/">
-                      <span className="text-xl font-bold text-white">ABC Cars</span>
+                      <span className="text-xl font-bold">
+                        <span className="text-secondary">A</span>
+                        <span className="text-white">BC</span>
+                        <span className="text-accent"> Cars</span>
+                      </span>
                     </Link>
                   </div>
                   <div className="hidden md:block">
                     <div className="ml-10 flex items-baseline space-x-4">
                       {/* Public navigation available to all users */}
                       {publicNavigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? 'bg-primary-focus text-white'
-                              : 'text-white hover:bg-primary-focus',
-                            'rounded-md px-3 py-2 text-sm font-medium'
-                          )}
-                          aria-current={item.current ? 'page' : undefined}
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
-
-                      {/* Authenticated user common navigation */}
-                      {auth.user && userNavigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? 'bg-primary-focus text-white'
-                              : 'text-white hover:bg-primary-focus',
-                            'rounded-md px-3 py-2 text-sm font-medium'
-                          )}
-                          aria-current={item.current ? 'page' : undefined}
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
-                      
-                      {/* Admin specific navigation */}
-                      {isAdmin && adminNavigation.map((item) => (
-                        <Link
-                          key={item.name}
-                          href={item.href}
-                          className={classNames(
-                            item.current
-                              ? 'bg-primary-focus text-white'
-                              : 'text-white hover:bg-primary-focus',
-                            'rounded-md px-3 py-2 text-sm font-medium'
-                          )}
-                          aria-current={item.current ? 'page' : undefined}
-                        >
-                          {item.name}
-                        </Link>
-                      ))}
-                      
-                      {/* Regular user specific navigation */}
-                      {!isAdmin && auth.user && regularUserNavigation.map((item) => (
                         <Link
                           key={item.name}
                           href={item.href}
@@ -167,23 +108,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                           leaveTo="transform opacity-0 scale-95"
                         >
                           <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                            {profileNavigation.map((item) => (
-                              <Menu.Item key={item.name}>
-                                {({ active }) => (
-                                  <Link
-                                    href={item.href}
-                                    method={item.method}
-                                    as={item.method ? 'button' : undefined}
-                                    className={classNames(
-                                      active ? 'bg-gray-100' : '',
-                                      'block px-4 py-2 text-sm text-gray-700'
-                                    )}
-                                  >
-                                    {item.name}
-                                  </Link>
-                                )}
-                              </Menu.Item>
-                            ))}
+                            {isAdmin ? (
+                              adminProfileNavigation.map((item) => (
+                                <Menu.Item key={item.name}>
+                                  {({ active }) => (
+                                    <Link
+                                      href={item.href}
+                                      method={item.method}
+                                      as={item.method ? 'button' : undefined}
+                                      className={classNames(
+                                        active ? 'bg-gray-100' : '',
+                                        'block px-4 py-2 text-sm text-gray-700'
+                                      )}
+                                    >
+                                      {item.name}
+                                    </Link>
+                                  )}
+                                </Menu.Item>
+                              ))
+                            ) : (
+                              userProfileNavigation.map((item) => (
+                                <Menu.Item key={item.name}>
+                                  {({ active }) => (
+                                    <Link
+                                      href={item.href}
+                                      method={item.method}
+                                      as={item.method ? 'button' : undefined}
+                                      className={classNames(
+                                        active ? 'bg-gray-100' : '',
+                                        'block px-4 py-2 text-sm text-gray-700'
+                                      )}
+                                    >
+                                      {item.name}
+                                    </Link>
+                                  )}
+                                </Menu.Item>
+                              ))
+                            )}
                           </Menu.Items>
                         </Transition>
                       </Menu>
@@ -238,62 +199,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     {item.name}
                   </Disclosure.Button>
                 ))}
-
-                {/* Authenticated user common navigation for mobile */}
-                {auth.user && userNavigation.map((item) => (
-                  <Disclosure.Button
-                    key={item.name}
-                    as={Link}
-                    href={item.href}
-                    className={classNames(
-                      item.current
-                        ? 'bg-primary-focus text-white'
-                        : 'text-white hover:bg-primary-focus',
-                      'block rounded-md px-3 py-2 text-base font-medium'
-                    )}
-                    aria-current={item.current ? 'page' : undefined}
-                  >
-                    {item.name}
-                  </Disclosure.Button>
-                ))}
-                
-                {/* Admin specific navigation for mobile */}
-                {isAdmin && adminNavigation.map((item) => (
-                  <Disclosure.Button
-                    key={item.name}
-                    as={Link}
-                    href={item.href}
-                    className={classNames(
-                      item.current
-                        ? 'bg-primary-focus text-white'
-                        : 'text-white hover:bg-primary-focus',
-                      'block rounded-md px-3 py-2 text-base font-medium'
-                    )}
-                    aria-current={item.current ? 'page' : undefined}
-                  >
-                    {item.name}
-                  </Disclosure.Button>
-                ))}
-                
-                {/* Regular user specific navigation for mobile */}
-                {!isAdmin && auth.user && regularUserNavigation.map((item) => (
-                  <Disclosure.Button
-                    key={item.name}
-                    as={Link}
-                    href={item.href}
-                    className={classNames(
-                      item.current
-                        ? 'bg-primary-focus text-white'
-                        : 'text-white hover:bg-primary-focus',
-                      'block rounded-md px-3 py-2 text-base font-medium'
-                    )}
-                    aria-current={item.current ? 'page' : undefined}
-                  >
-                    {item.name}
-                  </Disclosure.Button>
-                ))}
               </div>
-              
+
               <div className="border-t border-gray-700 pb-3 pt-4">
                 {auth.user ? (
                   <div>
@@ -307,17 +214,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                       </div>
                     </div>
                     <div className="mt-3 space-y-1 px-2">
-                      {profileNavigation.map((item) => (
-                        <Disclosure.Button
-                          key={item.name}
-                          as={Link}
-                          href={item.href}
-                          method={item.method}
-                          className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-primary-focus"
-                        >
-                          {item.name}
-                        </Disclosure.Button>
-                      ))}
+                      {isAdmin ? (
+                        adminProfileNavigation.map((item) => (
+                          <Disclosure.Button
+                            key={item.name}
+                            as={Link}
+                            href={item.href}
+                            method={item.method}
+                            className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-primary-focus"
+                          >
+                            {item.name}
+                          </Disclosure.Button>
+                        ))
+                      ) : (
+                        userProfileNavigation.map((item) => (
+                          <Disclosure.Button
+                            key={item.name}
+                            as={Link}
+                            href={item.href}
+                            method={item.method}
+                            className="block rounded-md px-3 py-2 text-base font-medium text-white hover:bg-primary-focus"
+                          >
+                            {item.name}
+                          </Disclosure.Button>
+                        ))
+                      )}
                     </div>
                   </div>
                 ) : (
@@ -356,7 +277,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">ABC Cars</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                <span className="text-secondary">A</span>
+                <span className="text-white">BC</span>
+                <span className="text-accent"> Cars</span>
+              </h3>
               <p className="text-sm">Your trusted partner in finding the perfect used car.</p>
             </div>
             <div>

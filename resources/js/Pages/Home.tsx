@@ -1,74 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Car, PageProps } from '@/types';
-import axios from 'axios';
 
-export default function Home({ auth }: PageProps) {
-  const [featuredCars, setFeaturedCars] = useState<Car[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+interface HomeProps extends PageProps {
+  featuredCars: Car[];
+}
 
-  useEffect(() => {
-    // Fetch featured cars
-    const fetchFeaturedCars = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get('/api/featured-cars');
-        setFeaturedCars(response.data.slice(0, 4)); // Limit to 4 cars
-        setLoading(false);
-      } catch (err) {
-        setError('Failed to load featured cars.');
-        setLoading(false);
-      }
-    };
-
-    fetchFeaturedCars();
-  }, []);
-
-  // Testimonials data
+export default function Home({ auth, featuredCars }: HomeProps) {
+  // Testimonials data with updated images
   const testimonials = [
     {
       id: 1,
-      name: 'John Doe',
-      avatar: '/images/avatars/customer-1.jpg',
+      name: 'Sarah Thompson',
+      avatar: '/images/What our customers say/Sarah Thompson.jpeg',
       text: 'Found my dream car on ABC Cars! The process was smooth from viewing to test drive to bid acceptance.',
     },
     {
       id: 2,
-      name: 'Sarah Wilson',
-      avatar: '/images/avatars/customer-2.jpg',
+      name: 'Micheal Brown',
+      avatar: '/images/What our customers say/Micheal Brown.jpeg',
       text: 'The variety of cars available is amazing. The bidding system makes buying transparent and fair.',
     },
     {
       id: 3,
-      name: 'Michael Chen',
-      avatar: '/images/avatars/customer-3.jpg',
+      name: 'Emily Chen',
+      avatar: '/images/What our customers say/Emily Chen.jpeg',
       text: 'As a first-time car buyer, ABC Cars made the process easy to understand. Great customer service!',
     },
     {
       id: 4,
-      name: 'Lisa Johnson',
-      avatar: '/images/avatars/customer-4.jpg',
+      name: 'David Rodriguez',
+      avatar: '/images/What our customers say/David Rodriguez.jpeg',
       text: 'I sold my car through ABC Cars and received fair offers quickly. Would definitely use again!',
     },
     {
       id: 5,
-      name: 'Robert Smith',
-      avatar: '/images/avatars/customer-5.jpg',
+      name: 'Priya Patel',
+      avatar: '/images/What our customers say/Priya Patel.jpeg',
       text: 'The scheduling system for test drives is convenient. I appreciated the flexibility offered.',
     },
   ];
-  
-    return (
+
+  return (
     <AppLayout>
-            <Head title="Home" />
+      <Head title="Home" />
 
       {/* Hero Section */}
-      <div 
-        className="relative py-16 md:py-32 bg-cover bg-center" 
-        style={{ 
-          backgroundImage: 'url(/images/BG-Images/Home-background-1.png)',
+      <div
+        className="relative py-16 md:py-32 bg-cover bg-center"
+        style={{
+          backgroundImage: 'url(/images/Home-background-1.jpg)',
         }}
       >
         <div className="absolute inset-0 bg-black opacity-50"></div>
@@ -81,15 +63,15 @@ export default function Home({ auth }: PageProps) {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             {!auth.user && (
-              <Link 
-                href={route('register')} 
+              <Link
+                href={route('register')}
                 className="btn btn-primary btn-lg"
               >
                 Join Us
               </Link>
             )}
-            <Link 
-              href={route('cars.index')} 
+            <Link
+              href={route('cars.index')}
               className="btn btn-secondary btn-lg"
             >
               Explore Cars
@@ -103,64 +85,53 @@ export default function Home({ auth }: PageProps) {
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-2">Featured Cars</h2>
           <p className="text-center text-gray-600 mb-10">Discover our selection of quality vehicles</p>
-          
-          {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="loading loading-spinner loading-lg text-primary"></div>
-            </div>
-          ) : error ? (
-            <div className="alert alert-error max-w-lg mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-              <span>{error}</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {featuredCars.length > 0 ? (
-                featuredCars.map((car) => (
-                  <div key={car.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-                    <figure className="h-48">
-                      {car.media && car.media[0] ? (
-                        <img 
-                          src={car.media[0].original_url} 
-                          alt={`${car.make} ${car.model}`} 
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/images/default-car.jpg';
-                          }}
-                        />
-                      ) : (
-                        <img 
-                          src="/images/default-car.jpg" 
-                          alt={`${car.make} ${car.model}`} 
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                    </figure>
-                    <div className="card-body">
-                      <h3 className="card-title">
-                        {car.make} {car.model}
-                        <span className="badge badge-secondary">{car.registration_year}</span>
-                      </h3>
-                      <p className="text-xl font-bold text-primary">${car.price.toLocaleString()}</p>
-                      <div className="card-actions justify-end mt-4">
-                        <Link
-                          href={route('cars.show', car.slug)}
-                          className="btn btn-primary btn-sm"
-                        >
-                          View Details
-                        </Link>
-                      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {featuredCars && featuredCars.length > 0 ? (
+              featuredCars.map((car) => (
+                <div key={car.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+                  <figure className="h-48">
+                    {car.media && car.media[0] ? (
+                      <img
+                        src={car.media[0].original_url}
+                        alt={`${car.make} ${car.model}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/images/default-car.jpg';
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src="/images/default-car.jpg"
+                        alt={`${car.make} ${car.model}`}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+                  </figure>
+                  <div className="card-body">
+                    <h3 className="card-title">
+                      {car.make} {car.model}
+                      <span className="badge badge-secondary">{car.registration_year}</span>
+                    </h3>
+                    <p className="text-xl font-bold text-primary">${car.price.toLocaleString()}</p>
+                    <div className="card-actions justify-end mt-4">
+                      <Link
+                        href={route('cars.show', car.slug)}
+                        className="btn btn-primary btn-sm"
+                      >
+                        View Details
+                      </Link>
                     </div>
                   </div>
-                ))
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-gray-500">No featured cars available at the moment.</p>
                 </div>
-              )}
-            </div>
-          )}
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12">
+                <p className="text-gray-500">No featured cars available at the moment.</p>
+              </div>
+            )}
+          </div>
 
           <div className="text-center mt-10">
             <Link href={route('cars.index')} className="btn btn-outline btn-primary">
@@ -175,7 +146,7 @@ export default function Home({ auth }: PageProps) {
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-2">How It Works</h2>
           <p className="text-center text-gray-600 mb-12">Three easy steps to find your perfect car</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Step 1 */}
             <div className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
@@ -187,7 +158,7 @@ export default function Home({ auth }: PageProps) {
                 </p>
               </div>
             </div>
-            
+
             {/* Step 2 */}
             <div className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
               <div className="card-body text-center">
@@ -198,7 +169,7 @@ export default function Home({ auth }: PageProps) {
                 </p>
               </div>
             </div>
-            
+
             {/* Step 3 */}
             <div className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
               <div className="card-body text-center">
@@ -209,16 +180,16 @@ export default function Home({ auth }: PageProps) {
                 </p>
               </div>
             </div>
-    </div>
-  </div>
-</div>
+          </div>
+        </div>
+      </div>
 
       {/* Customer Reviews Section */}
       <div className="py-16 bg-gray-50">
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-center mb-2">What Our Customers Say</h2>
           <p className="text-center text-gray-600 mb-12">Hear from our satisfied customers</p>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {testimonials.map((testimonial) => (
               <div key={testimonial.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
@@ -226,8 +197,8 @@ export default function Home({ auth }: PageProps) {
                   <div className="flex items-center mb-4">
                     <div className="avatar mr-4">
                       <div className="w-12 h-12 rounded-full">
-                        <img 
-                          src={testimonial.avatar} 
+                        <img
+                          src={testimonial.avatar}
                           alt={testimonial.name}
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -250,30 +221,30 @@ export default function Home({ auth }: PageProps) {
                   <p className="text-gray-600 italic">"{testimonial.text}"</p>
                 </div>
               </div>
-    ))}
-</div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Call to Action */}
-      <div className="py-12 bg-primary text-white">
+      {/* CTA Section */}
+      <div className="bg-primary text-white py-16">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Find Your Dream Car?</h2>
-          <p className="mb-8 max-w-xl mx-auto">
-            Join ABC Cars today and experience the easiest way to buy or sell your vehicle.
+          <p className="text-lg mb-8 max-w-2xl mx-auto">
+            Join thousands of satisfied customers who have found their perfect vehicle through ABC Cars.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href={route('cars.index')} className="btn btn-lg btn-secondary">
+            <Link href={route('cars.index')} className="btn btn-secondary btn-lg">
               Browse Cars
             </Link>
             {!auth.user && (
-              <Link href={route('register')} className="btn btn-lg btn-outline text-white hover:bg-white hover:text-primary">
-                Create Account
+              <Link href={route('register')} className="btn bg-white text-primary hover:bg-gray-100 btn-lg">
+                Sign Up Now
               </Link>
             )}
           </div>
         </div>
       </div>
     </AppLayout>
-    );
+  );
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Car;
+use App\Models\ContactMessage;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,10 +12,13 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $featuredCars = Car::where('is_approved', true)
+        // Fetch featured cars with media
+        $featuredCars = Car::with('media')
+            ->where('is_approved', true)
             ->where('is_active', true)
+            ->where('is_sold', false)
             ->orderBy('created_at', 'desc')
-            ->take(6)
+            ->take(4)
             ->get();
 
         return Inertia::render('Home', [
@@ -42,24 +46,27 @@ class HomeController extends Controller
             'message' => 'required|string|max:500',
         ]);
 
-        // Here you would typically send an email or save to database
-        // For example:
-        // Mail::to('info@abccars.com')->send(new ContactFormSubmission($validated));
+        // Create a new contact message
+        ContactMessage::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'subject' => $validated['subject'],
+            'message' => $validated['message'],
+            'user_id' => Auth::id(), // Will be null for guests
+        ]);
 
-        return response()->json(['message' => 'Message sent successfully']);
+        return redirect()->back()->with('success', 'Thank you for your message! We will get back to you as soon as possible.');
     }
 
     public function dashboard()
     {
         $user = Auth::user();
-        $cars = $user->cars()->latest()->get();
-        $appointments = $user->appointments()->latest()->get();
-        $transactions = $user->transactions()->latest()->get();
 
-        return Inertia::render('User/Dashboard', [
-            'cars' => $cars,
-            'appointments' => $appointments,
-            'transactions' => $transactions,
-        ]);
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        return Inertia::render('User/Dashboard');
     }
 }
