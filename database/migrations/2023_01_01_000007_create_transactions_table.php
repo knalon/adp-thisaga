@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('car_id')->constrained()->onDelete('cascade');
-            $table->foreignId('appointment_id')->nullable()->constrained()->onDelete('set null');
-            $table->decimal('final_price', 10, 2);
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+            $table->foreignId('buyer_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('bid_id')->nullable()->constrained()->onDelete('set null');
+            $table->decimal('amount', 10, 2);
+            $table->string('payment_method')->default('cash');
             $table->string('transaction_reference')->nullable();
-            $table->string('payment_method')->nullable();
-            $table->text('payment_details')->nullable();
-            $table->timestamp('payment_date')->nullable();
+            $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
     }

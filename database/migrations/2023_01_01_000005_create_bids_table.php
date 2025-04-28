@@ -15,14 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('car_id')->constrained()->onDelete('cascade');
-            $table->foreignId('appointment_id')->nullable()->constrained()->onDelete('set null');
-            $table->decimal('amount', 12, 2);
-            $table->enum('status', ['pending', 'accepted', 'rejected', 'outbid'])->default('pending');
-            $table->text('notes')->nullable();
+            $table->decimal('amount', 10, 2);
+            $table->text('message')->nullable();
+            $table->enum('status', ['pending', 'accepted', 'rejected', 'expired'])->default('pending');
+            $table->timestamp('expiry_date')->nullable();
             $table->timestamps();
-
-            // Add index for faster queries
-            $table->index(['car_id', 'status']);
         });
     }
 
@@ -33,4 +30,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('bids');
     }
-};
+}; 

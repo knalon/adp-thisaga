@@ -219,6 +219,61 @@ class AppointmentResource extends Resource
                             ]
                         );
                     }),
+                Tables\Actions\Action::make('finalizeTransaction')
+                    ->label('Finalize Transaction')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('secondary')
+                    ->requiresConfirmation()
+                    ->visible(fn (Appointment $appointment) => $appointment->status === 'approved' || $appointment->status === 'completed')
+                    ->form([
+                        Forms\Components\TextInput::make('amount')
+                            ->label('Transaction Amount')
+                            ->required()
+                            ->numeric()
+                            ->prefix('$')
+                            ->default(fn (Appointment $appointment) => $appointment->bid_amount ?? $appointment->car->price),
+                        Forms\Components\Textarea::make('notes')
+                            ->label('Transaction Notes'),
+                    ])
+                    ->action(function (Appointment $appointment, array $data) {
+                        // Create a new transaction
+                        $transaction = \App\Models\Transaction::create([
+                            'user_id' => $appointment->user_id,
+                            'car_id' => $appointment->car_id,
+                            'amount' => $data['amount'],
+                            'notes' => $data['notes'] ?? '',
+                            'status' => 'paid',
+                            'payment_method' => 'admin_finalized',
+                            'payment_date' => now(),
+                        ]);
+
+                        // Mark the car as sold
+                        $appointment->car->update([
+                            'is_sold' => true,
+                            'is_active' => false,
+                        ]);
+
+                        // Mark the appointment as completed
+                        $appointment->update([
+                            'status' => 'completed'
+                        ]);
+
+                        // Log the activity
+                        ActivityLog::log(
+                            'Finalized transaction',
+                            'transaction_create',
+                            $transaction,
+                            [
+                                'appointment_id' => $appointment->id,
+                                'car_id' => $appointment->car_id,
+                                'user_id' => $appointment->user_id,
+                                'amount' => $data['amount'],
+                            ]
+                        );
+
+                        // Notify the user
+                        $appointment->user->notify(new \App\Notifications\TransactionCreated($transaction, $appointment));
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

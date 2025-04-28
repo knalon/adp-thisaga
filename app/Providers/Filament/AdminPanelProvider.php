@@ -31,12 +31,14 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => Color::Teal,
-                'gray' => Color::Slate,
-                'danger' => Color::Rose,
-                'info' => Color::Blue,
-                'success' => Color::Emerald,
-                'warning' => Color::Orange,
+                'primary' => '#00494D', // Midnight Teal
+                'secondary' => '#FFC857', // Amber Gold
+                'accent' => '#F16A70', // Blush Coral
+                'gray' => '#6E7C7C', // Slate Gray
+                'danger' => '#dc2626',
+                'success' => '#16a34a',
+                'warning' => '#eab308',
+                'info' => '#06b6d4',
             ])
             ->brandName('ABC Cars Admin')
             ->brandLogo(asset('images/logo.png'))

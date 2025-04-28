@@ -5,37 +5,98 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Bid extends Model
 {
     use HasFactory;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'car_id',
-        'appointment_id',
         'amount',
-        'status', // pending, accepted, rejected, outbid
-        'notes',
+        'message',
+        'status',
+        'expiry_date',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
         'amount' => 'decimal:2',
+        'expiry_date' => 'datetime',
     ];
 
+    /**
+     * Get the user that owns the bid.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Get the car that the bid is for.
+     */
     public function car(): BelongsTo
     {
         return $this->belongsTo(Car::class);
     }
 
-    public function appointment(): BelongsTo
+    /**
+     * Get the appointment associated with the bid.
+     */
+    public function appointment(): HasOne
     {
-        return $this->belongsTo(Appointment::class);
+        return $this->hasOne(Appointment::class);
+    }
+
+    /**
+     * Get the transaction associated with the bid.
+     */
+    public function transaction(): HasOne
+    {
+        return $this->hasOne(Transaction::class);
+    }
+
+    /**
+     * Scope a query to only include pending bids.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    /**
+     * Scope a query to only include accepted bids.
+     */
+    public function scopeAccepted($query)
+    {
+        return $query->where('status', 'accepted');
+    }
+
+    /**
+     * Scope a query to only include rejected bids.
+     */
+    public function scopeRejected($query)
+    {
+        return $query->where('status', 'rejected');
+    }
+
+    /**
+     * Scope a query to only include expired bids.
+     */
+    public function scopeExpired($query)
+    {
+        return $query->where('status', 'expired');
     }
 
     /**

@@ -16,18 +16,17 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('make');
             $table->string('model');
-            $table->integer('registration_year');
+            $table->integer('year');
+            $table->string('color');
+            $table->string('transmission')->default('Automatic');
             $table->decimal('price', 10, 2);
             $table->text('description')->nullable();
-            $table->string('color')->nullable();
-            $table->string('mileage')->nullable();
-            $table->string('transmission')->nullable();
-            $table->string('fuel_type')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->integer('mileage')->nullable();
+            $table->string('fuel_type')->default('Petrol');
+            $table->string('condition')->default('Used');
             $table->boolean('is_approved')->default(false);
-            $table->string('slug')->unique();
+            $table->boolean('is_active')->default(true);
             $table->boolean('is_sold')->default(false);
-            $table->timestamp('sold_at')->nullable();
             $table->timestamps();
         });
     }

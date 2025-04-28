@@ -14,28 +14,42 @@ class Car extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
     protected $fillable = [
         'user_id',
         'make',
         'model',
-        'registration_year',
+        'year',
+        'color',
+        'transmission',
         'price',
         'description',
-        'color',
         'mileage',
-        'transmission',
         'fuel_type',
-        'is_active',
+        'condition',
         'is_approved',
+        'is_active',
         'is_sold',
         'is_pending_sale',
         'sold_at',
         'slug',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
     protected $casts = [
-        'is_active' => 'boolean',
+        'year' => 'integer',
+        'price' => 'decimal:2',
+        'mileage' => 'integer',
         'is_approved' => 'boolean',
+        'is_active' => 'boolean',
         'is_sold' => 'boolean',
         'is_pending_sale' => 'boolean',
         'sold_at' => 'datetime',
@@ -46,7 +60,7 @@ class Car extends Model implements HasMedia
         parent::boot();
 
         static::creating(function ($car) {
-            $car->slug = Str::slug($car->make . ' ' . $car->model . ' ' . $car->registration_year . ' ' . Str::random(6));
+            $car->slug = Str::slug($car->make . ' ' . $car->model . ' ' . $car->year . ' ' . Str::random(6));
         });
     }
 
@@ -86,50 +100,117 @@ class Car extends Model implements HasMedia
         );
     }
 
+    /**
+     * Get the user that owns the car.
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function appointments(): HasMany
+    /**
+     * Get the images for the car.
+     */
+    public function images(): HasMany
     {
-        return $this->hasMany(Appointment::class);
+        return $this->hasMany(CarImage::class);
     }
 
-    public function transactions(): HasMany
+    /**
+     * Get the primary image for the car.
+     */
+    public function getPrimaryImage()
     {
-        return $this->hasMany(Transaction::class);
+        return $this->images()->where('is_primary', true)->first() ?: 
+               $this->images()->first();
     }
 
+    /**
+     * Get the bids for the car.
+     */
     public function bids(): HasMany
     {
         return $this->hasMany(Bid::class);
     }
 
     /**
-     * Get the current highest bid for this car
-     *
-     * @return \App\Models\Bid|null
+     * Get the appointments for the car.
      */
-    public function getHighestBid()
+    public function appointments(): HasMany
     {
-        return $this->bids()
-            ->whereIn('status', ['pending', 'accepted'])
-            ->orderBy('amount', 'desc')
-            ->first();
+        return $this->hasMany(Appointment::class);
     }
 
     /**
-     * Get all active bids for this car
-     *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * Get the transaction for the car.
      */
-    public function getActiveBids()
+    public function transaction(): HasMany
     {
-        return $this->bids()
-            ->whereIn('status', ['pending', 'accepted'])
-            ->orderBy('amount', 'desc')
-            ->get();
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Scope a query to only include active cars.
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
+    /**
+     * Scope a query to only include approved cars.
+     */
+    public function scopeApproved($query)
+    {
+        return $query->where('is_approved', true);
+    }
+
+    /**
+     * Scope a query to only include not sold cars.
+     */
+    public function scopeAvailable($query)
+    {
+        return $query->where('is_sold', false);
+    }
+
+    /**
+     * Scope a query to filter by make.
+     */
+    public function scopeByMake($query, $make)
+    {
+        return $query->where('make', $make);
+    }
+
+    /**
+     * Scope a query to filter by model.
+     */
+    public function scopeByModel($query, $model)
+    {
+        return $query->where('model', $model);
+    }
+
+    /**
+     * Scope a query to filter by year.
+     */
+    public function scopeByYear($query, $year)
+    {
+        return $query->where('year', $year);
+    }
+
+    /**
+     * Scope a query to filter by price range.
+     */
+    public function scopeByPriceRange($query, $min, $max)
+    {
+        if ($min) {
+            $query->where('price', '>=', $min);
+        }
+        
+        if ($max) {
+            $query->where('price', '<=', $max);
+        }
+        
+        return $query;
     }
 
     public function registerMediaCollections(): void

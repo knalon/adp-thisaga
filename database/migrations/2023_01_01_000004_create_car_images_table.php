@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('appointments', function (Blueprint $table) {
+        Schema::create('car_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('car_id')->constrained()->onDelete('cascade');
-            $table->timestamp('appointment_date');
-            $table->decimal('bid_price', 10, 2)->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected', 'completed'])->default('pending');
-            $table->text('notes')->nullable();
+            $table->string('image_path');
+            $table->boolean('is_primary')->default(false);
             $table->timestamps();
         });
     }
@@ -28,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('appointments');
+        Schema::dropIfExists('car_images');
     }
 }; 

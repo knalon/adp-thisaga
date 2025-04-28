@@ -14,12 +14,12 @@ return new class extends Migration
         Schema::create('activity_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
-            $table->string('log_type');
             $table->string('action');
-            $table->morphs('loggable');
-            $table->text('description')->nullable();
-            $table->text('properties')->nullable();
-            $table->string('ip_address', 45)->nullable();
+            $table->string('entity_type')->nullable();
+            $table->unsignedBigInteger('entity_id')->nullable();
+            $table->text('details')->nullable();
+            $table->string('ip_address')->nullable();
+            $table->string('user_agent')->nullable();
             $table->timestamps();
         });
     }

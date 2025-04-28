@@ -1,15 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState, FormEvent } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import AppLayout from '@/Layouts/AppLayout';
-import { Car, PageProps } from '@/types';
-import { useForm } from '@inertiajs/react';
+import Layout from '@/Layouts/Layout';
+import { PageProps } from '@/types';
+import { Car } from '@/types/models';
+import Pagination from '@/Components/Pagination';
+import SearchIcon from '@/Components/icons/SearchIcon';
+import FilterIcon from '@/Components/icons/FilterIcon';
+import SortIcon from '@/Components/icons/SortIcon';
+import NoDataIllustration from '@/Components/NoDataIllustration';
 
-interface CarsProps extends Record<string, unknown> {
+interface CarsProps extends PageProps {
   cars: {
     data: Car[];
     links: any[];
-    current_page: number;
-    last_page: number;
+    from: number;
+    to: number;
     total: number;
   };
   filters: {
@@ -18,90 +23,120 @@ interface CarsProps extends Record<string, unknown> {
     year?: string;
     min_price?: string;
     max_price?: string;
+    fuel_type?: string;
+    transmission?: string;
     search?: string;
+    sort?: string;
   };
   makes: string[];
-  models: string[];
   years: number[];
   priceRange: {
     min: number;
     max: number;
   };
+  fuelTypes: string[];
+  transmissions: string[];
 }
 
-type FilterKey = 'make' | 'model' | 'year' | 'min_price' | 'max_price' | 'search';
+type FilterKey = 'make' | 'model' | 'year' | 'min_price' | 'max_price' | 'fuel_type' | 'transmission' | 'search' | 'sort';
 
-export default function Index({
-  auth,
-  cars,
-  filters,
-  makes,
-  models,
-  years,
-  priceRange,
-}: PageProps<CarsProps>) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [availableModels, setAvailableModels] = useState<string[]>(models || []);
-
-  const form = useForm({
+export default function Index({ cars, filters, makes, years, priceRange, fuelTypes, transmissions }: CarsProps) {
+  const { auth } = usePage<PageProps>().props;
+  const [form, setForm] = useState({
     make: filters.make || '',
     model: filters.model || '',
     year: filters.year || '',
     min_price: filters.min_price || '',
     max_price: filters.max_price || '',
+    fuel_type: filters.fuel_type || '',
+    transmission: filters.transmission || '',
     search: filters.search || '',
+    sort: filters.sort || '',
   });
 
-  // Update available models when make changes
+  const [showFilters, setShowFilters] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+
   useEffect(() => {
-    if (form.data.make) {
+    // Update URL when form values change (debounced)
+    const handler = setTimeout(() => {
+      const params = new URLSearchParams();
+
+      Object.entries(form).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value);
+        }
+      });
+
+      router.get(route('cars.index'), Object.fromEntries(params), {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+      });
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [form]);
+
+  // Fetch models when make changes
+  useEffect(() => {
+    if (form.make) {
       setIsLoading(true);
-      fetch(`/api/models?make=${form.data.make}`)
+      fetch(`/api/cars/models?make=${encodeURIComponent(form.make)}`)
         .then(response => response.json())
         .then(data => {
           setAvailableModels(data);
           setIsLoading(false);
         })
-        .catch(() => {
+        .catch(error => {
+          console.error('Error fetching models:', error);
           setIsLoading(false);
         });
     } else {
-      setAvailableModels(models || []);
+      setAvailableModels([]);
     }
-  }, [form.data.make]);
+  }, [form.make]);
 
-  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement | HTMLInputElement>) => {
-    const { name, value } = e.target;
-    form.setData(name as FilterKey, value);
-
-    // Clear model if make changes
-    if (name === 'make') {
-      form.setData('model', '');
+  const handleFilterChange = (key: FilterKey, value: string) => {
+    // Reset model if make is changed
+    if (key === 'make' && value !== form.make) {
+      setForm({ ...form, [key]: value, model: '' });
+    } else {
+      setForm({ ...form, [key]: value });
     }
-  };
-
-  const applyFilters = () => {
-    setIsLoading(true);
-    router.get('/cars', form.data, {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => setIsLoading(false),
-      onError: () => setIsLoading(false),
-    });
   };
 
   const resetFilters = () => {
-    form.reset();
-    setIsLoading(true);
-    router.get('/cars', {}, {
+    setForm({
+      make: '',
+      model: '',
+      year: '',
+      min_price: '',
+      max_price: '',
+      fuel_type: '',
+      transmission: '',
+      search: '',
+      sort: '',
+    });
+  };
+
+  const handleSearch = (e: FormEvent) => {
+    e.preventDefault();
+
+    router.get(route('cars.index'), form, {
       preserveState: true,
       preserveScroll: true,
-      onSuccess: () => setIsLoading(false),
-      onError: () => setIsLoading(false),
     });
   };
 
   return (
+    <Layout>
+      <Head title="Cars For Sale" />
+
+      {/* Hero Banner */}
+      <div className="bg-gradient-to-r from-blue-800 to-indigo-900 py-12 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto text-center">
     <AppLayout>
       <Head title="Browse Cars" />
 
@@ -121,7 +156,7 @@ export default function Index({
           <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
             <h2 className="text-lg font-semibold mb-4">Filter Cars</h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
               {/* Make Filter */}
               <div>
                 <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">
@@ -131,12 +166,12 @@ export default function Index({
                   id="make"
                   name="make"
                   className="select select-bordered w-full"
-                  value={form.data.make}
-                  onChange={handleFilterChange}
+                  value={form.make}
+                  onChange={(e) => handleFilterChange('make', e.target.value)}
                   disabled={isLoading}
                 >
                   <option value="">All Makes</option>
-                  {makes.map((make) => (
+                  {makes && makes.map((make) => (
                     <option key={make} value={make}>
                       {make}
                     </option>
@@ -153,12 +188,12 @@ export default function Index({
                   id="model"
                   name="model"
                   className="select select-bordered w-full"
-                  value={form.data.model}
-                  onChange={handleFilterChange}
-                  disabled={isLoading || !form.data.make}
+                  value={form.model}
+                  onChange={(e) => handleFilterChange('model', e.target.value)}
+                  disabled={isLoading || !form.make}
                 >
                   <option value="">All Models</option>
-                  {availableModels.map((model) => (
+                  {availableModels && availableModels.map((model) => (
                     <option key={model} value={model}>
                       {model}
                     </option>
@@ -175,12 +210,12 @@ export default function Index({
                   id="year"
                   name="year"
                   className="select select-bordered w-full"
-                  value={form.data.year}
-                  onChange={handleFilterChange}
+                  value={form.year}
+                  onChange={(e) => handleFilterChange('year', e.target.value)}
                   disabled={isLoading}
                 >
                   <option value="">All Years</option>
-                  {years.map((year) => (
+                  {years && years.map((year) => (
                     <option key={year} value={year.toString()}>
                       {year}
                     </option>
@@ -188,215 +223,251 @@ export default function Index({
                 </select>
               </div>
 
-              {/* Price Range Filter */}
+              {/* Fuel Type Filter */}
               <div>
-                <label htmlFor="min_price" className="block text-sm font-medium text-gray-700 mb-1">
-                  Min Price
+                <label htmlFor="fuel_type" className="block text-sm font-medium text-gray-700 mb-1">
+                  Fuel Type
                 </label>
-                <input
-                  type="number"
-                  id="min_price"
-                  name="min_price"
-                  className="input input-bordered w-full"
-                  placeholder="Min Price"
-                  value={form.data.min_price}
-                  onChange={handleFilterChange}
-                  min={priceRange.min}
-                  max={priceRange.max}
+                <select
+                  id="fuel_type"
+                  name="fuel_type"
+                  className="select select-bordered w-full"
+                  value={form.fuel_type}
+                  onChange={(e) => handleFilterChange('fuel_type', e.target.value)}
                   disabled={isLoading}
-                />
+                >
+                  <option value="">All Fuel Types</option>
+                  {fuelTypes && fuelTypes.map((fuelType) => (
+                    <option key={fuelType} value={fuelType}>
+                      {fuelType}
+                    </option>
+                  ))}
+                </select>
               </div>
 
+              {/* Transmission Filter */}
               <div>
-                <label htmlFor="max_price" className="block text-sm font-medium text-gray-700 mb-1">
-                  Max Price
+                <label htmlFor="transmission" className="block text-sm font-medium text-gray-700 mb-1">
+                  Transmission
                 </label>
-                <input
-                  type="number"
-                  id="max_price"
-                  name="max_price"
-                  className="input input-bordered w-full"
-                  placeholder="Max Price"
-                  value={form.data.max_price}
-                  onChange={handleFilterChange}
-                  min={priceRange.min}
-                  max={priceRange.max}
+                <select
+                  id="transmission"
+                  name="transmission"
+                  className="select select-bordered w-full"
+                  value={form.transmission}
+                  onChange={(e) => handleFilterChange('transmission', e.target.value)}
                   disabled={isLoading}
-                />
+                >
+                  <option value="">All Transmissions</option>
+                  {transmissions && transmissions.map((transmission) => (
+                    <option key={transmission} value={transmission}>
+                      {transmission}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Price Range Filter */}
+              <div className="md:col-span-2 lg:col-span-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price Range
+                </label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    id="min_price"
+                    name="min_price"
+                    placeholder="Min"
+                    className="input input-bordered w-full"
+                    value={form.min_price}
+                    onChange={(e) => handleFilterChange('min_price', e.target.value)}
+                    disabled={isLoading}
+                    min={priceRange?.min || 0}
+                  />
+                  <span>-</span>
+                  <input
+                    type="number"
+                    id="max_price"
+                    name="max_price"
+                    placeholder="Max"
+                    className="input input-bordered w-full"
+                    value={form.max_price}
+                    onChange={(e) => handleFilterChange('max_price', e.target.value)}
+                    disabled={isLoading}
+                    max={priceRange?.max || 999999}
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Search Input */}
-            <div className="mt-4">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-                Search
-              </label>
-              <div className="flex gap-4">
-                <input
-                  type="text"
-                  id="search"
-                  name="search"
-                  className="input input-bordered flex-1"
-                  placeholder="Search by keywords..."
-                  value={form.data.search}
-                  onChange={handleFilterChange}
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={applyFilters}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm"></span>
-                      Searching...
-                    </>
-                  ) : (
-                    'Search'
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-outline"
-                  onClick={resetFilters}
-                  disabled={isLoading}
-                >
-                  Reset Filters
-                </button>
-              </div>
+            <div className="flex flex-col sm:flex-row gap-2 mt-4">
+              <button
+                type="button"
+                className="btn btn-primary flex-1"
+                onClick={applyFilters}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm mr-2"></span>
+                    Filtering...
+                  </>
+                ) : (
+                  'Apply Filters'
+                )}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost flex-1"
+                onClick={resetFilters}
+                disabled={isLoading}
+              >
+                Reset Filters
+              </button>
             </div>
           </div>
 
-          {/* Results Count */}
-          {cars.total > 0 && (
-            <div className="mb-6">
-              <p className="text-gray-600">
-                Showing {cars.data.length} of {cars.total} cars
-                {Object.values(filters).some(val => val) && ' matching your filters'}
-              </p>
+          {/* Results Section */}
+          <div className="bg-white shadow-sm rounded-lg p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold">Available Cars ({cars.total})</h2>
+              <div className="dropdown dropdown-end">
+                <label tabIndex={0} className="btn btn-ghost btn-sm">
+                  Sort by <span className="ml-1">↓</span>
+                </label>
+                <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+                  <li>
+                    <button onClick={() => router.get('/cars', { ...form, sort: 'price_asc' })}>
+                      Price: Low to High
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => router.get('/cars', { ...form, sort: 'price_desc' })}>
+                      Price: High to Low
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => router.get('/cars', { ...form, sort: 'year_desc' })}>
+                      Year: Newest First
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => router.get('/cars', { ...form, sort: 'year_asc' })}>
+                      Year: Oldest First
+                    </button>
+                  </li>
+                </ul>
+              </div>
             </div>
-          )}
 
-          {/* Car Listing */}
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="loading loading-spinner loading-lg"></div>
-            </div>
-          ) : cars.data.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {cars.data.map((car) => (
-                  <div key={car.id} className="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300">
-                    <figure className="relative h-56">
-                      {car.media && car.media[0] ? (
-                        <img
-                          src={car.media[0].original_url}
-                          alt={`${car.make} ${car.model}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/images/default-car.jpg';
+            {cars.data.length === 0 ? (
+              <div className="text-center py-12">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                <h3 className="mt-2 text-lg font-medium text-gray-900">No cars found</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Try adjusting your search or filter criteria to find what you're looking for.
+                </p>
+                <div className="mt-6">
+                  <button onClick={resetFilters} className="btn btn-outline btn-primary">
+                    Clear filters
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {cars.data.map((car) => (
+                    <Link key={car.id} href={`/cars/${car.id}`} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
+                      <figure className="relative h-48 bg-gray-200">
+                        {car.primary_image ? (
+                          <img
+                            src={car.primary_image.startsWith('http')
+                              ? car.primary_image
+                              : `/storage/${car.primary_image}`}
+                            alt={`${car.make} ${car.model}`}
+                            className="object-cover w-full h-full"
+                          />
+                        ) : (
+                          <div className="flex items-center justify-center h-full w-full bg-gray-100">
+                            <span className="text-gray-400">No image available</span>
+                          </div>
+                        )}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
+                          <h2 className="text-xl font-bold text-white truncate">
+                            {car.make} {car.model}
+                          </h2>
+                          <p className="text-white/90 text-sm">{car.year}</p>
+                        </div>
+                      </figure>
+                      <div className="card-body p-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-2xl font-bold text-secondary">${Number(car.price).toLocaleString()}</span>
+                          <div className="badge badge-outline">{car.fuel_type}</div>
+                        </div>
+                        <div className="flex gap-2 text-sm text-gray-500 mt-2">
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            {car.mileage ? `${Number(car.mileage).toLocaleString()} km` : 'N/A'}
+                          </div>
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            {car.transmission || 'N/A'}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 line-clamp-2 mt-2">{car.description}</p>
+                        <div className="card-actions justify-end mt-4">
+                          <button className="btn btn-primary btn-sm">View Details</button>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {cars.links && cars.links.length > 3 && (
+                  <div className="flex justify-center mt-8">
+                    <div className="btn-group">
+                      {cars.links.map((link, i) => (
+                        <button
+                          key={i}
+                          className={`btn ${link.active ? 'btn-active' : ''} ${!link.url ? 'btn-disabled' : ''}`}
+                          disabled={!link.url}
+                          onClick={() => {
+                            if (link.url) {
+                              setIsLoading(true);
+                              router.visit(link.url, {
+                                preserveScroll: true,
+                                onSuccess: () => setIsLoading(false),
+                                onError: () => setIsLoading(false),
+                              });
+                            }
                           }}
-                        />
-                      ) : (
-                        <img
-                          src="/images/default-car.jpg"
-                          alt={`${car.make} ${car.model}`}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
-                      <div className="absolute top-2 right-2">
-                        <span className="badge badge-primary">{car.registration_year}</span>
-                      </div>
-                    </figure>
-                    <div className="card-body">
-                      <h2 className="card-title">
-                        {car.make} {car.model}
-                      </h2>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {car.transmission && (
-                          <span className="badge badge-outline">{car.transmission}</span>
-                        )}
-                        {car.fuel_type && (
-                          <span className="badge badge-outline">{car.fuel_type}</span>
-                        )}
-                        {car.body_type && (
-                          <span className="badge badge-outline">{car.body_type}</span>
-                        )}
-                      </div>
-                      <p className="text-2xl font-bold text-primary mt-2">
-                        ${car.price.toLocaleString()}
-                      </p>
-                      <div className="card-actions justify-end mt-4">
-                        <Link
-                          href={route('cars.show', car.slug)}
-                          className="btn btn-primary"
-                        >
-                          View Details
-                        </Link>
-                      </div>
+                          dangerouslySetInnerHTML={{ __html: link.label }}
+                        ></button>
+                      ))}
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {cars.last_page > 1 && (
-                <div className="mt-8 flex justify-center">
-                  <div className="join">
-                    {cars.links.map((link, i) => {
-                      if (link.url === null) {
-                        return (
-                          <button key={i} className="join-item btn btn-disabled">
-                            <span dangerouslySetInnerHTML={{ __html: link.label.replace('&laquo;', '«').replace('&raquo;', '»') }} />
-                          </button>
-                        );
-                      }
-
-                      return (
-                        <Link
-                          key={i}
-                          href={link.url}
-                          className={`join-item btn ${link.active ? 'btn-active' : ''}`}
-                        >
-                          <span dangerouslySetInnerHTML={{ __html: link.label.replace('&laquo;', '«').replace('&raquo;', '»') }} />
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="bg-white p-8 rounded-lg text-center">
-              <h3 className="text-lg font-medium text-gray-900">No cars found</h3>
-              <p className="mt-2 text-gray-500">
-                Try adjusting your filters or check back later for new listings.
-              </p>
-            </div>
-          )}
-
-          {/* Call-to-Action Section */}
-          {auth.user && (
-            <div className="mt-12 bg-gradient-to-r from-secondary to-primary text-white p-8 rounded-lg shadow-lg">
-              <div className="flex flex-col md:flex-row justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-bold mb-2">Have a car to sell?</h3>
-                  <p className="mb-0 md:mb-0">
-                    List your car on ABC Cars and reach thousands of potential buyers.
-                  </p>
-                </div>
-                <Link
-                  href={route('cars.create')}
-                  className="btn btn-secondary mt-4 md:mt-0"
-                >
-                  List Your Car
-                </Link>
-              </div>
-            </div>
-          )}
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </AppLayout>

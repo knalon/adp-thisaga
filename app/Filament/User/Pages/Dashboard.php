@@ -3,6 +3,8 @@
 namespace App\Filament\User\Pages;
 
 use App\Filament\User\Widgets\DashboardStatsWidget;
+use App\Filament\User\Widgets\CarSearchWidget;
+use App\Filament\User\Widgets\MyRecentActivitiesWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
@@ -26,7 +28,8 @@ class Dashboard extends BaseDashboard
     protected function getFooterWidgets(): array
     {
         return [
-            // We'll add widgets here later
+            CarSearchWidget::class,
+            MyRecentActivitiesWidget::class,
         ];
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -9,38 +11,33 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Notifications\UserBanned;
+use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
-        'phone',
-        'is_active',
-        'is_banned',
+        'phone_number',
         'address',
-        'city',
-        'state',
-        'postal_code',
-        'country',
-        'profile_photo',
+        'profile_picture',
         'is_admin',
-        'status',
+        'is_active',
     ];
 
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -48,19 +45,16 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
+    protected $casts = [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+        'is_admin' => 'boolean',
             'is_active' => 'boolean',
-            'is_banned' => 'boolean',
         ];
-    }
 
     /**
      * Ban this user and send ban notification
@@ -102,23 +96,67 @@ class User extends Authenticatable
         );
     }
 
+    /**
+     * Check if the user can access a Filament panel.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        if ($panel->getId() === 'admin') {
+            return $this->is_admin === true;
+        }
+
+        if ($panel->getId() === 'user') {
+            return $this->is_active === true;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get the cars owned by the user.
+     */
     public function cars(): HasMany
     {
         return $this->hasMany(Car::class);
     }
 
+    /**
+     * Get the bids made by the user.
+     */
+    public function bids(): HasMany
+    {
+        return $this->hasMany(Bid::class);
+    }
+
+    /**
+     * Get the appointments made by the user.
+     */
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
     }
 
-    public function transactions(): HasMany
+    /**
+     * Get the transactions where user is buyer.
+     */
+    public function purchases(): HasMany
     {
-        return $this->hasMany(Transaction::class);
+        return $this->hasMany(Transaction::class, 'buyer_id');
     }
 
-    public function bids(): HasMany
+    /**
+     * Get the transactions where user is seller.
+     */
+    public function sales(): HasMany
     {
-        return $this->hasMany(Bid::class);
+        return $this->hasMany(Transaction::class, 'seller_id');
+    }
+
+    /**
+     * Get user activity logs.
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }

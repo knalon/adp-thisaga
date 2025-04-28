@@ -3,6 +3,8 @@ import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { Appointment, Car, PageProps } from '@/types';
 import { Dialog, Transition } from '@headlessui/react';
+import CarouselComponent from '@/Components/CarouselComponent';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 interface Props extends Record<string, unknown> {
   car: Car;
@@ -15,9 +17,10 @@ interface Props extends Record<string, unknown> {
     amount: number;
     created_at: string;
   }[];
+  similarCars: (Car & { primary_image: string })[];
 }
 
-export default function Show({ car, carImages, auth, currentBid, userAppointment, bidHistory }: PageProps<Props>) {
+export default function Show({ car, carImages, auth, currentBid, userAppointment, bidHistory, similarCars }: PageProps<Props>) {
   const [activeImage, setActiveImage] = useState(carImages[0] || '/images/default-car.jpg');
   const isOwner = auth.user && car.user_id === auth.user.id;
   const isLoggedIn = !!auth.user;
@@ -311,6 +314,51 @@ export default function Show({ car, carImages, auth, currentBid, userAppointment
           </div>
         </div>
       </div>
+
+      {/* Similar Cars Section */}
+      {similarCars && similarCars.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Cars You Might Like</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {similarCars.map((similarCar) => (
+              <Link
+                key={similarCar.id}
+                href={`/cars/${similarCar.id}`}
+                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                <div className="relative h-48">
+                  {similarCar.primary_image ? (
+                    <img
+                      src={similarCar.primary_image.startsWith('http')
+                        ? similarCar.primary_image
+                        : `/storage/${similarCar.primary_image}`}
+                      alt={`${similarCar.make} ${similarCar.model}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                      <span className="text-gray-400">No image available</span>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {similarCar.make} {similarCar.model} ({similarCar.year})
+                  </h3>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-xl font-bold text-primary">${Number(similarCar.price).toLocaleString()}</span>
+                    {similarCar.mileage && (
+                      <span className="text-sm text-gray-600">
+                        {Number(similarCar.mileage).toLocaleString()} km
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Test Drive Appointment Modal */}
       <Transition show={appointmentModalOpen} as={React.Fragment}>
