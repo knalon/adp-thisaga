@@ -29,13 +29,22 @@ class TransactionController extends Controller
         ]);
 
         // Create the transaction
-        $transaction = Transaction::create([
-            'user_id' => $appointment->user_id,
-            'car_id' => $appointment->car_id,
-            'appointment_id' => $appointment->id,
-            'amount' => $validated['amount'],
-            'status' => 'pending',
-        ]);
+        $transaction = new Transaction();
+        $transaction->user_id = $appointment->user_id;
+        $transaction->car_id = $appointment->car_id;
+        $transaction->appointment_id = $appointment->id;
+        $transaction->amount = $validated['amount'];
+        $transaction->status = 'pending';
+        $transaction->save();
+
+        // Mark the car as pending sale
+        $car = $appointment->car;
+        $car->is_pending_sale = true;
+        $car->save();
+
+        // Mark the bid as approved
+        $appointment->bid_approved = true;
+        $appointment->save();
 
         // Log the activity
         ActivityLog::log(
@@ -48,6 +57,9 @@ class TransactionController extends Controller
                 'user_id' => $transaction->user_id,
             ]
         );
+
+        // Notify the buyer
+        $appointment->user->notify(new TransactionFinalized($transaction, $car));
 
         return back()->with('success', 'Transaction finalized successfully.');
     }
@@ -82,37 +94,52 @@ class TransactionController extends Controller
         ];
 
         $pdf = PDF::loadView('invoices.transaction', $data);
-        
+
         return $pdf->download('invoice-' . $data['invoice_number'] . '.pdf');
     }
-    
+
     public function markAsPaid(Request $request, Transaction $transaction)
     {
         // Check if the user is authorized
-        if (Auth::id() !== $transaction->user_id) {
+        if (Auth::id() !== $transaction->user_id && !Auth::user()->roles->pluck('name')->contains('admin')) {
             abort(403, 'Unauthorized');
         }
-        
+
         // Validate the request
         $validated = $request->validate([
             'payment_method' => 'required|string|in:cash,credit_card,debit_card,bank_transfer,check,other',
             'transaction_id' => 'nullable|string|max:255',
         ]);
-        
+
         // Update the transaction
         $transaction->status = 'paid';
         $transaction->payment_method = $validated['payment_method'];
         $transaction->transaction_id = $validated['transaction_id'] ?? null;
         $transaction->payment_date = now();
         $transaction->save();
-        
+
         // Update car status to sold
-        $car = $transaction->appointment->car;
+        $car = $transaction->car;
         $car->is_active = false;
         $car->is_sold = true;
+        $car->is_pending_sale = false;
         $car->sold_at = now();
         $car->save();
-        
+
+        // Delete other appointments and bids for this car
+        // First get the current appointment ID to exclude it
+        $currentAppointmentId = $transaction->appointment_id;
+
+        // Delete other bids for this car
+        \App\Models\Bid::where('car_id', $car->id)
+            ->whereNot('appointment_id', $currentAppointmentId)
+            ->delete();
+
+        // Delete other appointments for this car
+        Appointment::where('car_id', $car->id)
+            ->whereNot('id', $currentAppointmentId)
+            ->delete();
+
         // Log the activity
         ActivityLog::log(
             'Marked transaction as paid',
@@ -124,7 +151,7 @@ class TransactionController extends Controller
                 'user_id' => $transaction->user_id,
             ]
         );
-        
+
         return back()->with('success', 'Payment recorded successfully.');
     }
 }

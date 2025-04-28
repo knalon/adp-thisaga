@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use App\Enums\RolesEnum;
 use Spatie\Permission\Models\Role;
 use App\Notifications\AppointmentStatusChanged;
+use App\Notifications\BidApproved;
 
 class AdminController extends Controller
 {
@@ -104,7 +105,7 @@ class AdminController extends Controller
             ->with(['user', 'car', 'car.user'])
             ->latest()
             ->paginate(10, ['*'], 'rejected_page');
-        
+
         // Get appointments with bids for admin review
         $biddedAppointments = Appointment::where('status', 'approved')
             ->whereNotNull('bid_price')
@@ -124,7 +125,7 @@ class AdminController extends Controller
     {
         $previousStatus = $appointment->status;
         $appointment->update(['status' => 'approved']);
-        
+
         // Notify the user about the appointment approval
         $appointment->user->notify(new AppointmentStatusChanged($appointment, $previousStatus));
 
@@ -135,7 +136,7 @@ class AdminController extends Controller
     {
         $previousStatus = $appointment->status;
         $appointment->update(['status' => 'rejected']);
-        
+
         // Notify the user about the appointment rejection
         $appointment->user->notify(new AppointmentStatusChanged($appointment, $previousStatus));
 
@@ -148,9 +149,55 @@ class AdminController extends Controller
         if ($appointment->status !== 'approved' || $appointment->bid_price === null) {
             return back()->withErrors(['appointment' => 'Cannot approve this bid.']);
         }
-        
+
+        // Mark the bid as approved
+        $appointment->update(['bid_approved' => true]);
+
+        // Mark the car as pending sale
+        $car = $appointment->car;
+        $car->update(['is_pending_sale' => true]);
+
+        // Notify the user that their bid has been approved
+        $appointment->user->notify(new BidApproved($appointment, $car));
+
         return Inertia::render('Admin/FinalizeBid', [
             'appointment' => $appointment->load(['user', 'car', 'car.user']),
+        ]);
+    }
+
+    public function rejectBid(Appointment $appointment)
+    {
+        // Check if appointment has a bid
+        if ($appointment->bid_price === null) {
+            return back()->withErrors(['appointment' => 'This appointment does not have a bid to reject.']);
+        }
+
+        // Remove the bid
+        $appointment->update([
+            'bid_price' => null,
+            'bid_approved' => false
+        ]);
+
+        return back()->with('success', 'Bid rejected successfully.');
+    }
+
+    /**
+     * Find alternative bids for a car when the approved bid is cancelled
+     */
+    public function alternativeBids(Car $car)
+    {
+        // Get all appointments with bids for this car, ordered by bid price (highest first)
+        $alternativeBids = Appointment::where('car_id', $car->id)
+            ->where('status', 'approved')
+            ->whereNotNull('bid_price')
+            ->where('bid_approved', false)
+            ->orderBy('bid_price', 'desc')
+            ->with(['user', 'car.user'])
+            ->get();
+
+        return Inertia::render('Admin/AlternativeBids', [
+            'car' => $car->load('user'),
+            'alternativeBids' => $alternativeBids
         ]);
     }
 
@@ -165,4 +212,3 @@ class AdminController extends Controller
         ]);
     }
 }
- 

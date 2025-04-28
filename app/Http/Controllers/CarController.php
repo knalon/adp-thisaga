@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class CarController extends Controller
 {
@@ -115,6 +116,9 @@ class CarController extends Controller
 
     public function store(Request $request)
     {
+        // Add debugging to see what's in the request
+        \Log::info('Car store request', ['data' => $request->all()]);
+
         $validated = $request->validate([
             'make' => 'required|string|max:255',
             'model' => 'required|string|max:255',
@@ -128,15 +132,43 @@ class CarController extends Controller
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $car = Auth::user()->cars()->create($validated);
+        // Generate a slug for the car
+        $slug = strtolower($validated['make'] . '-' . $validated['model'] . '-' . Str::random(8));
+        
+        try {
+            $car = new Car();
+            $car->user_id = Auth::id();
+            $car->make = $validated['make'];
+            $car->model = $validated['model'];
+            $car->registration_year = $validated['registration_year'];
+            $car->price = $validated['price'];
+            $car->description = $validated['description'] ?? null;
+            $car->color = $validated['color'] ?? null;
+            $car->mileage = $validated['mileage'] ?? null;
+            $car->transmission = $validated['transmission'] ?? null;
+            $car->fuel_type = $validated['fuel_type'] ?? null;
+            $car->slug = $slug;
+            $car->is_approved = false;
+            $car->is_active = true;
+            $car->save();
+            
+            \Log::info('Car saved successfully', ['car_id' => $car->id]);
 
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $car->addMedia($image)->toMediaCollection('car_images');
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $car->addMedia($image)->toMediaCollection('car_images');
+                }
             }
-        }
 
-        return redirect()->route('cars.show', $car->slug)->with('success', 'Car listing created and waiting for approval.');
+            return redirect()->route('user.cars')->with('success', 'Car listing created and waiting for approval.');
+        } catch (\Exception $e) {
+            \Log::error('Failed to save car', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return back()->withErrors(['error' => 'Failed to save car: ' . $e->getMessage()]);
+        }
     }
 
     public function edit(Car $car)

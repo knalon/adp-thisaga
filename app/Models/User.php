@@ -30,7 +30,11 @@ class User extends Authenticatable
         'address',
         'city',
         'state',
-        'zip_code',
+        'postal_code',
+        'country',
+        'profile_photo',
+        'is_admin',
+        'status',
     ];
 
     /**

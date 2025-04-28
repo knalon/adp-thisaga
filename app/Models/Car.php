@@ -28,6 +28,7 @@ class Car extends Model implements HasMedia
         'is_active',
         'is_approved',
         'is_sold',
+        'is_pending_sale',
         'sold_at',
         'slug',
     ];
@@ -36,6 +37,7 @@ class Car extends Model implements HasMedia
         'is_active' => 'boolean',
         'is_approved' => 'boolean',
         'is_sold' => 'boolean',
+        'is_pending_sale' => 'boolean',
         'sold_at' => 'datetime',
     ];
 

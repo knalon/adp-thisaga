@@ -7,7 +7,10 @@ import {
   TruckIcon,
   CalendarIcon,
   HeartIcon,
-  CogIcon
+  CogIcon,
+  CurrencyDollarIcon,
+  CheckCircleIcon,
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 
 interface UserSidebarItem {
@@ -25,6 +28,9 @@ export default function UserDashboard({ auth }: PageProps) {
     { name: 'Overview', href: '/user/dashboard', icon: UserIcon, current: activeSection === 'overview' },
     { name: 'My Cars', href: '/user/cars', icon: TruckIcon, current: activeSection === 'cars' },
     { name: 'My Appointments', href: '/user/appointments', icon: CalendarIcon, current: activeSection === 'appointments' },
+    { name: 'My Bids', href: '/user/bids', icon: CurrencyDollarIcon, current: activeSection === 'bids' },
+    { name: 'My Sold Cars', href: '/user/sold-cars', icon: CheckCircleIcon, current: activeSection === 'sold-cars' },
+    { name: 'My Purchased Cars', href: '/user/purchased-cars', icon: ShoppingCartIcon, current: activeSection === 'purchased-cars' },
     { name: 'Saved Cars', href: '/user/saved', icon: HeartIcon, current: activeSection === 'saved' },
     { name: 'Settings', href: '/profile', icon: CogIcon, current: activeSection === 'settings' },
   ];
@@ -93,7 +99,7 @@ export default function UserDashboard({ auth }: PageProps) {
                     <div className="ml-4">
                       <h3 className="text-lg font-medium text-blue-600">Welcome, {auth.user.name}!</h3>
                       <p className="mt-1 text-blue-500">
-                        This is your personal dashboard where you can manage your cars, appointments, and account settings.
+                        This is your personal dashboard where you can manage your cars, bids, purchases, sales, appointments, and account settings.
                       </p>
                     </div>
                   </div>
@@ -136,14 +142,50 @@ export default function UserDashboard({ auth }: PageProps) {
                       </div>
                     </div>
                   </div>
+
+                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center">
+                      <div className="p-3 rounded-full bg-blue-100 text-blue-500 mr-4">
+                        <CurrencyDollarIcon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Active Bids</p>
+                        <p className="text-2xl font-semibold">0</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center">
+                      <div className="p-3 rounded-full bg-indigo-100 text-indigo-500 mr-4">
+                        <CheckCircleIcon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Sold Cars</p>
+                        <p className="text-2xl font-semibold">0</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div className="flex items-center">
+                      <div className="p-3 rounded-full bg-purple-100 text-purple-500 mr-4">
+                        <ShoppingCartIcon className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Purchased Cars</p>
+                        <p className="text-2xl font-semibold">0</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Quick Actions */}
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   <Link href="/user/cars" className="btn btn-primary">My Cars</Link>
-                  <Link href="/user/appointments" className="btn btn-secondary">My Appointments</Link>
-                  <Link href="/user/saved" className="btn btn-accent">Saved Cars</Link>
+                  <Link href="/user/bids" className="btn btn-secondary">My Bids</Link>
+                  <Link href="/user/appointments" className="btn btn-accent">My Appointments</Link>
                   <Link href="/profile" className="btn btn-outline">My Profile</Link>
                 </div>
 
@@ -163,6 +205,18 @@ export default function UserDashboard({ auth }: PageProps) {
                             <p className="text-sm font-medium text-gray-900">List your car for sale</p>
                             <p className="text-sm text-gray-500">Create your first car listing in just a few steps</p>
                             <Link href="/user/cars/create" className="btn btn-xs btn-primary mt-1">Add Car</Link>
+                          </div>
+                        </div>
+                      </li>
+                      <li className="py-3">
+                        <div className="flex items-center">
+                          <div className="mr-4 flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <CurrencyDollarIcon className="h-5 w-5 text-blue-500" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Place bids on cars</p>
+                            <p className="text-sm text-gray-500">Find cars accepting bids and make your offer</p>
+                            <Link href="/cars" className="btn btn-xs btn-secondary mt-1">Browse Auction Cars</Link>
                           </div>
                         </div>
                       </li>

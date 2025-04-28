@@ -48,6 +48,18 @@ Route::middleware('auth')->group(function () {
             return Inertia::render('User/Appointments');
         })->name('user.appointments');
 
+        Route::get('/bids', function () {
+            return Inertia::render('User/Bids');
+        })->name('user.bids');
+
+        Route::get('/sold-cars', function () {
+            return Inertia::render('User/SoldCars');
+        })->name('user.sold-cars');
+
+        Route::get('/purchased-cars', function () {
+            return Inertia::render('User/PurchasedCars');
+        })->name('user.purchased-cars');
+
         Route::get('/saved', function () {
             return Inertia::render('User/Saved');
         })->name('user.saved');
@@ -78,6 +90,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
         Route::get('/appointments/create/{car}', [AppointmentController::class, 'create'])->name('appointments.create');
         Route::post('/appointments/{appointment}/submit-bid', [AppointmentController::class, 'submitBid'])->name('appointments.submitBid');
+        Route::post('/appointments/{appointment}/cancel-bid', [AppointmentController::class, 'cancelBid'])->name('appointments.cancelBid');
 
         // Transaction routes
         Route::get('/transactions/{transaction}/invoice', [App\Http\Controllers\TransactionController::class, 'generateInvoice'])->name('transaction.invoice');
@@ -137,6 +150,11 @@ Route::middleware('auth')->group(function () {
         // Appointment approvals
         Route::patch('/appointments/{appointment}/approve', [AdminController::class, 'approveAppointment'])->name('admin.appointments.approve');
         Route::patch('/appointments/{appointment}/reject', [AdminController::class, 'rejectAppointment'])->name('admin.appointments.reject');
+
+        // Bid approvals
+        Route::patch('/appointments/{appointment}/approve-bid', [AdminController::class, 'approveBid'])->name('admin.appointments.approveBid');
+        Route::patch('/appointments/{appointment}/reject-bid', [AdminController::class, 'rejectBid'])->name('admin.appointments.rejectBid');
+        Route::get('/cars/{car}/alternative-bids', [AdminController::class, 'alternativeBids'])->name('admin.cars.alternativeBids');
 
         // Transactions
         Route::post('/transactions/finalize/{appointment}', [TransactionController::class, 'finalize'])->name('admin.transactions.finalize');

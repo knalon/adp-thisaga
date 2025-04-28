@@ -33,11 +33,11 @@ export default function Dashboard({ auth }: PageProps) {
     return classes.filter(Boolean).join(' ');
   }
 
-  return (
+    return (
     <AppLayout>
-      <Head title="Dashboard" />
+            <Head title="Dashboard" />
 
-      <div className="py-12">
+            <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-6">User Dashboard</h1>
 
@@ -179,13 +179,13 @@ export default function Dashboard({ auth }: PageProps) {
                         </div>
                       </li>
                     </ul>
-                  </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
     </AppLayout>
-  );
+    );
 }

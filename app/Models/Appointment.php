@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Appointment extends Model
 {
@@ -15,6 +16,7 @@ class Appointment extends Model
         'car_id',
         'appointment_date',
         'bid_price',
+        'bid_approved',
         'status',
         'notes',
     ];
@@ -22,6 +24,7 @@ class Appointment extends Model
     protected $casts = [
         'appointment_date' => 'datetime',
         'bid_price' => 'decimal:2',
+        'bid_approved' => 'boolean',
     ];
 
     public function user(): BelongsTo
@@ -32,5 +35,10 @@ class Appointment extends Model
     public function car(): BelongsTo
     {
         return $this->belongsTo(Car::class);
+    }
+
+    public function transaction(): HasOne
+    {
+        return $this->hasOne(Transaction::class);
     }
 }

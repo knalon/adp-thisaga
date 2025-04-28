@@ -158,7 +158,7 @@ export default function About() {
                 <p className="text-gray-700">
                   To be the most trusted and preferred platform for used car transactions in Singapore, known for our unwavering commitment to quality, customer satisfaction, and innovative services that continually exceed expectations.
                 </p>
-              </div>
+            </div>
             </div>
           </div>
         </div>
@@ -171,13 +171,13 @@ export default function About() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {coreValues.map((value) => (
               <div key={value.id} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
-                <div className="card-body">
+              <div className="card-body">
                   <h3 className="text-xl font-bold text-gray-800 mb-2">{value.title}</h3>
                   <p className="text-gray-700">{value.description}</p>
                 </div>
               </div>
             ))}
-          </div>
+            </div>
         </div>
       </div>
 
