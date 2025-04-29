@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Filament\Notifications\Notification as FilamentNotification;
+use Filament\Notifications\Actions\Action;
 
 class TransactionCreated extends Notification implements ShouldQueue
 {
@@ -56,5 +57,24 @@ class TransactionCreated extends Notification implements ShouldQueue
             'car_id' => $this->transaction->car_id,
             'amount' => $this->transaction->amount,
         ];
+    }
+
+    public static function make(Transaction $transaction, ?Appointment $appointment = null): self
+    {
+        $car = $transaction->car;
+
+        // Send a Filament notification in the UI
+        FilamentNotification::make()
+            ->title('Transaction Completed')
+            ->body("Your transaction for {$car->make} {$car->model} has been finalized for $" . number_format($transaction->amount, 2))
+            ->success()
+            ->actions([
+                Action::make('view')
+                    ->button()
+                    ->url("/user/my-transactions/{$transaction->id}"),
+            ])
+            ->sendToDatabase($transaction->user);
+
+        return new static($transaction, $appointment);
     }
 }
