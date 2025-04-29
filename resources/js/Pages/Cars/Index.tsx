@@ -1,6 +1,6 @@
 import React, { useEffect, useState, FormEvent } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import Layout from '@/Layouts/Layout';
+import AppLayout from '@/Layouts/AppLayout';
 import { PageProps } from '@/types';
 import { Car } from '@/types/models';
 import Pagination from '@/Components/Pagination';
@@ -131,7 +131,7 @@ export default function Index({ cars, filters, makes, years, priceRange, fuelTyp
   };
 
   return (
-    <Layout>
+    <AppLayout>
       <Head title="Cars" />
 
       <div className="py-12">
@@ -363,6 +363,6 @@ export default function Index({ cars, filters, makes, years, priceRange, fuelTyp
           </div>
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 }
