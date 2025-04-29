@@ -1,9 +1,8 @@
 import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { PageProps } from '@/types';
 import { ArrowLeftIcon, EnvelopeIcon, PhoneIcon, TrashIcon, UserIcon } from '@heroicons/react/24/outline';
-import { Inertia } from '@inertiajs/inertia';
 
 interface ContactMessage {
   id: number;
@@ -29,7 +28,7 @@ interface ContactMessageShowProps extends PageProps {
 export default function ContactMessageShow({ auth, contactMessage, flash }: ContactMessageShowProps) {
   const deleteMessage = () => {
     if (confirm('Are you sure you want to delete this message?')) {
-      Inertia.delete(route('admin.contact-messages.destroy', contactMessage.id));
+      router.delete(route('admin.contact-messages.destroy', contactMessage.id));
     }
   };
 
