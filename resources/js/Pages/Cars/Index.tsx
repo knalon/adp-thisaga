@@ -132,344 +132,237 @@ export default function Index({ cars, filters, makes, years, priceRange, fuelTyp
 
   return (
     <Layout>
-      <Head title="Cars For Sale" />
-
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-blue-800 to-indigo-900 py-12 px-4 sm:px-6">
-        <div className="max-w-7xl mx-auto text-center">
-    <AppLayout>
-      <Head title="Browse Cars" />
-
-      {/* Hero Banner */}
-      <div className="bg-gradient-to-r from-primary to-secondary py-12 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">Find Your Perfect Car</h1>
-          <p className="text-lg mb-0 max-w-3xl mx-auto">
-            Browse our extensive collection of quality vehicles with detailed specifications and transparent pricing.
-          </p>
-        </div>
-      </div>
+      <Head title="Cars" />
 
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-          {/* Search & Filter Section */}
-          <div className="bg-white shadow-sm rounded-lg p-6 mb-6">
-            <h2 className="text-lg font-semibold mb-4">Filter Cars</h2>
+          {/* Hero Section */}
+          <div className="bg-primary text-white rounded-lg shadow-lg overflow-hidden mb-8">
+            <div className="max-w-7xl mx-auto text-center">
+              <h1 className="text-4xl font-bold mb-4">Find Your Perfect Used Car</h1>
+              <p className="text-xl mb-8">Browse our selection of quality used cars at competitive prices</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-              {/* Make Filter */}
-              <div>
-                <label htmlFor="make" className="block text-sm font-medium text-gray-700 mb-1">
-                  Make
-                </label>
-                <select
-                  id="make"
-                  name="make"
-                  className="select select-bordered w-full"
-                  value={form.make}
-                  onChange={(e) => handleFilterChange('make', e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="">All Makes</option>
-                  {makes && makes.map((make) => (
-                    <option key={make} value={make}>
-                      {make}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Model Filter */}
-              <div>
-                <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">
-                  Model
-                </label>
-                <select
-                  id="model"
-                  name="model"
-                  className="select select-bordered w-full"
-                  value={form.model}
-                  onChange={(e) => handleFilterChange('model', e.target.value)}
-                  disabled={isLoading || !form.make}
-                >
-                  <option value="">All Models</option>
-                  {availableModels && availableModels.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Year Filter */}
-              <div>
-                <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">
-                  Year
-                </label>
-                <select
-                  id="year"
-                  name="year"
-                  className="select select-bordered w-full"
-                  value={form.year}
-                  onChange={(e) => handleFilterChange('year', e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="">All Years</option>
-                  {years && years.map((year) => (
-                    <option key={year} value={year.toString()}>
-                      {year}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Fuel Type Filter */}
-              <div>
-                <label htmlFor="fuel_type" className="block text-sm font-medium text-gray-700 mb-1">
-                  Fuel Type
-                </label>
-                <select
-                  id="fuel_type"
-                  name="fuel_type"
-                  className="select select-bordered w-full"
-                  value={form.fuel_type}
-                  onChange={(e) => handleFilterChange('fuel_type', e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="">All Fuel Types</option>
-                  {fuelTypes && fuelTypes.map((fuelType) => (
-                    <option key={fuelType} value={fuelType}>
-                      {fuelType}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Transmission Filter */}
-              <div>
-                <label htmlFor="transmission" className="block text-sm font-medium text-gray-700 mb-1">
-                  Transmission
-                </label>
-                <select
-                  id="transmission"
-                  name="transmission"
-                  className="select select-bordered w-full"
-                  value={form.transmission}
-                  onChange={(e) => handleFilterChange('transmission', e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="">All Transmissions</option>
-                  {transmissions && transmissions.map((transmission) => (
-                    <option key={transmission} value={transmission}>
-                      {transmission}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Price Range Filter */}
-              <div className="md:col-span-2 lg:col-span-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price Range
-                </label>
-                <div className="flex items-center space-x-2">
+              {/* Search Bar */}
+              <div className="max-w-3xl mx-auto mb-8">
+                <form onSubmit={handleSearch} className="flex">
                   <input
-                    type="number"
-                    id="min_price"
-                    name="min_price"
-                    placeholder="Min"
-                    className="input input-bordered w-full"
-                    value={form.min_price}
-                    onChange={(e) => handleFilterChange('min_price', e.target.value)}
-                    disabled={isLoading}
-                    min={priceRange?.min || 0}
+                    type="text"
+                    placeholder="Search by make, model, or keyword..."
+                    className="flex-1 p-3 rounded-l-lg text-gray-900"
+                    value={form.search}
+                    onChange={(e) => setForm({ ...form, search: e.target.value })}
                   />
-                  <span>-</span>
-                  <input
-                    type="number"
-                    id="max_price"
-                    name="max_price"
-                    placeholder="Max"
-                    className="input input-bordered w-full"
-                    value={form.max_price}
-                    onChange={(e) => handleFilterChange('max_price', e.target.value)}
-                    disabled={isLoading}
-                    max={priceRange?.max || 999999}
-                  />
-                </div>
+                  <button
+                    type="submit"
+                    className="bg-secondary text-gray-900 px-6 py-3 rounded-r-lg font-medium hover:bg-opacity-90"
+                  >
+                    <SearchIcon className="h-5 w-5 inline-block mr-2" />
+                    Search
+                  </button>
+                </form>
               </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 mt-4">
-              <button
-                type="button"
-                className="btn btn-primary flex-1"
-                onClick={applyFilters}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <>
-                    <span className="loading loading-spinner loading-sm mr-2"></span>
-                    Filtering...
-                  </>
-                ) : (
-                  'Apply Filters'
-                )}
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost flex-1"
-                onClick={resetFilters}
-                disabled={isLoading}
-              >
-                Reset Filters
-              </button>
             </div>
           </div>
 
-          {/* Results Section */}
-          <div className="bg-white shadow-sm rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold">Available Cars ({cars.total})</h2>
-              <div className="dropdown dropdown-end">
-                <label tabIndex={0} className="btn btn-ghost btn-sm">
-                  Sort by <span className="ml-1">↓</span>
-                </label>
-                <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                  <li>
-                    <button onClick={() => router.get('/cars', { ...form, sort: 'price_asc' })}>
-                      Price: Low to High
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => router.get('/cars', { ...form, sort: 'price_desc' })}>
-                      Price: High to Low
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => router.get('/cars', { ...form, sort: 'year_desc' })}>
-                      Year: Newest First
-                    </button>
-                  </li>
-                  <li>
-                    <button onClick={() => router.get('/cars', { ...form, sort: 'year_asc' })}>
-                      Year: Oldest First
-                    </button>
-                  </li>
-                </ul>
+          {/* Filters and Results */}
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Filters Sidebar */}
+            <div className="lg:w-1/4">
+              <div className="bg-white rounded-lg shadow p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Filters</h2>
+                  <button
+                    onClick={resetFilters}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Reset All
+                  </button>
+                </div>
+
+                {/* Make Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Make</label>
+                  <select
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    value={form.make}
+                    onChange={(e) => handleFilterChange('make', e.target.value)}
+                  >
+                    <option value="">All Makes</option>
+                    {makes.map((make) => (
+                      <option key={make} value={make}>{make}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Model Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                  <input
+                    type="text"
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    placeholder="Enter model"
+                    value={form.model}
+                    onChange={(e) => handleFilterChange('model', e.target.value)}
+                  />
+                </div>
+
+                {/* Year Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+                  <select
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    value={form.year}
+                    onChange={(e) => handleFilterChange('year', e.target.value)}
+                  >
+                    <option value="">All Years</option>
+                    {years.map((year) => (
+                      <option key={year} value={year}>{year}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Price Range Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      className="w-1/2 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                      placeholder="Min"
+                      value={form.min_price}
+                      onChange={(e) => handleFilterChange('min_price', e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      className="w-1/2 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                      placeholder="Max"
+                      value={form.max_price}
+                      onChange={(e) => handleFilterChange('max_price', e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Fuel Type Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type</label>
+                  <select
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    value={form.fuel_type}
+                    onChange={(e) => handleFilterChange('fuel_type', e.target.value)}
+                  >
+                    <option value="">All Fuel Types</option>
+                    {fuelTypes.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Transmission Filter */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Transmission</label>
+                  <select
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    value={form.transmission}
+                    onChange={(e) => handleFilterChange('transmission', e.target.value)}
+                  >
+                    <option value="">All Transmissions</option>
+                    {transmissions.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Apply Filters Button */}
+                <button
+                  onClick={applyFilters}
+                  className="w-full bg-primary text-white py-2 rounded-md hover:bg-opacity-90"
+                >
+                  Apply Filters
+                </button>
               </div>
             </div>
 
-            {cars.data.length === 0 ? (
-              <div className="text-center py-12">
-                <svg
-                  className="mx-auto h-12 w-12 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-                <h3 className="mt-2 text-lg font-medium text-gray-900">No cars found</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Try adjusting your search or filter criteria to find what you're looking for.
-                </p>
-                <div className="mt-6">
-                  <button onClick={resetFilters} className="btn btn-outline btn-primary">
-                    Clear filters
-                  </button>
+            {/* Results */}
+            <div className="lg:w-3/4">
+              {/* Sort Options */}
+              <div className="bg-white rounded-lg shadow p-4 mb-6 flex justify-between items-center">
+                <div>
+                  <span className="text-sm text-gray-500">
+                    Showing {cars.from} to {cars.to} of {cars.total} results
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <label className="text-sm text-gray-700 mr-2">Sort by:</label>
+                  <select
+                    className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
+                    value={form.sort}
+                    onChange={(e) => handleFilterChange('sort', e.target.value)}
+                  >
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="price_low">Price: Low to High</option>
+                    <option value="price_high">Price: High to Low</option>
+                  </select>
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              {/* Cars Grid */}
+              {cars.data.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {cars.data.map((car) => (
-                    <Link key={car.id} href={`/cars/${car.id}`} className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow">
-                      <figure className="relative h-48 bg-gray-200">
-                        {car.primary_image ? (
-                          <img
-                            src={car.primary_image.startsWith('http')
-                              ? car.primary_image
-                              : `/storage/${car.primary_image}`}
-                            alt={`${car.make} ${car.model}`}
-                            className="object-cover w-full h-full"
-                          />
-                        ) : (
-                          <div className="flex items-center justify-center h-full w-full bg-gray-100">
-                            <span className="text-gray-400">No image available</span>
-                          </div>
-                        )}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                          <h2 className="text-xl font-bold text-white truncate">
-                            {car.make} {car.model}
-                          </h2>
-                          <p className="text-white/90 text-sm">{car.year}</p>
-                        </div>
-                      </figure>
-                      <div className="card-body p-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-2xl font-bold text-secondary">${Number(car.price).toLocaleString()}</span>
-                          <div className="badge badge-outline">{car.fuel_type}</div>
-                        </div>
-                        <div className="flex gap-2 text-sm text-gray-500 mt-2">
-                          <div className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            {car.mileage ? `${Number(car.mileage).toLocaleString()} km` : 'N/A'}
-                          </div>
-                          <div className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                            </svg>
-                            {car.transmission || 'N/A'}
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 line-clamp-2 mt-2">{car.description}</p>
-                        <div className="card-actions justify-end mt-4">
-                          <button className="btn btn-primary btn-sm">View Details</button>
+                    <div key={car.id} className="bg-white rounded-lg shadow overflow-hidden">
+                      <div className="relative">
+                        <img
+                          src={car.images && car.images.length > 0 ? car.images[0].url : '/images/car-placeholder.jpg'}
+                          alt={`${car.make} ${car.model}`}
+                          className="w-full h-48 object-cover"
+                        />
+                        <div className="absolute top-2 right-2 bg-primary text-white px-2 py-1 rounded text-sm">
+                          ${car.price.toLocaleString()}
                         </div>
                       </div>
-                    </Link>
+                      <div className="p-4">
+                        <h3 className="text-lg font-semibold mb-1">{car.make} {car.model}</h3>
+                        <p className="text-gray-600 mb-2">{car.year}</p>
+                        <div className="flex justify-between text-sm text-gray-500 mb-4">
+                          <span>{car.mileage.toLocaleString()} miles</span>
+                          <span>{car.fuel_type}</span>
+                          <span>{car.transmission}</span>
+                        </div>
+                        <Link
+                          href={route('cars.show', car.id)}
+                          className="block w-full text-center bg-primary text-white py-2 rounded hover:bg-opacity-90"
+                        >
+                          View Details
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow p-8 text-center">
+                  <NoDataIllustration className="w-48 h-48 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">No cars found</h3>
+                  <p className="text-gray-600 mb-4">Try adjusting your filters or search criteria</p>
+                  <button
+                    onClick={resetFilters}
+                    className="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90"
+                  >
+                    Reset Filters
+                  </button>
+                </div>
+              )}
 
-                {/* Pagination */}
-                {cars.links && cars.links.length > 3 && (
-                  <div className="flex justify-center mt-8">
-                    <div className="btn-group">
-                      {cars.links.map((link, i) => (
-                        <button
-                          key={i}
-                          className={`btn ${link.active ? 'btn-active' : ''} ${!link.url ? 'btn-disabled' : ''}`}
-                          disabled={!link.url}
-                          onClick={() => {
-                            if (link.url) {
-                              setIsLoading(true);
-                              router.visit(link.url, {
-                                preserveScroll: true,
-                                onSuccess: () => setIsLoading(false),
-                                onError: () => setIsLoading(false),
-                              });
-                            }
-                          }}
-                          dangerouslySetInnerHTML={{ __html: link.label }}
-                        ></button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+              {/* Pagination */}
+              {cars.data.length > 0 && (
+                <div className="mt-8">
+                  <Pagination links={cars.links} />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </AppLayout>
+    </Layout>
   );
 }
