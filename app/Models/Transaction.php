@@ -10,6 +10,13 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    public const SHIPPING_STATUS = [
+        'pending' => 'Pending',
+        'in_transit' => 'In Transit',
+        'delivered' => 'Delivered',
+        'failed' => 'Failed'
+    ];
+
     /**
      * The attributes that are mass assignable.
      *

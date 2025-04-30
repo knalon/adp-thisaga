@@ -172,42 +172,54 @@ class CarController extends Controller
      */
     public function store(Request $request)
     {
-        // Validate request
-        $validated = $request->validate([
-            'make' => 'required|string|max:50',
-            'model' => 'required|string|max:50',
-            'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
-            'price' => 'required|numeric|min:0',
-            'mileage' => 'nullable|numeric|min:0',
-            'fuel_type' => 'nullable|string|max:50',
-            'transmission' => 'nullable|string|max:50',
-            'color' => 'nullable|string|max:30',
-            'description' => 'required|string',
-            'features' => 'nullable|array',
-            'features.*' => 'string',
-            'images' => 'required|array|min:1',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Create car record
-        $car = new Car($validated);
-        $car->user_id = Auth::id();
-        $car->status = 'available';
-        $car->save();
+            // Validate request
+            $validated = $request->validate([
+                'make' => 'required|string|max:50',
+                'model' => 'required|string|max:50',
+                'year' => 'required|integer|min:1900|max:' . (date('Y') + 1),
+                'price' => 'required|numeric|min:0',
+                'mileage' => 'nullable|numeric|min:0',
+                'fuel_type' => 'nullable|string|max:50',
+                'transmission' => 'nullable|string|max:50',
+                'color' => 'nullable|string|max:30',
+                'description' => 'required|string',
+                'features' => 'nullable|array',
+                'features.*' => 'string',
+                'images' => 'required|array|min:1',
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            ]);
 
-        // Handle images
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
-                $path = $image->store('car-images', 'public');
-                $car->images()->create([
-                    'path' => $path,
-                    'type' => 'image',
-                ]);
+            // Create car record
+            $car = new Car($validated);
+            $car->user_id = Auth::id();
+            $car->status = 'pending'; // Set initial status as pending for admin approval
+            $car->save();
+
+            // Handle images
+            if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $image) {
+                    $path = $image->store('car-images', 'public');
+                    $car->images()->create([
+                        'path' => $path,
+                        'type' => 'image',
+                    ]);
+                }
             }
-        }
 
-        return redirect()->route('cars.show', $car->id)
-            ->with('success', 'Car listed successfully!');
+            DB::commit();
+
+            return redirect()->route('dashboard')
+                ->with('success', 'Car listing submitted successfully! Waiting for admin approval.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Car creation failed: ' . $e->getMessage());
+
+            return back()->with('error', 'Failed to create car listing. Please try again.');
+        }
     }
 
     /**

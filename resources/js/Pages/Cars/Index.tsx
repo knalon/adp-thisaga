@@ -137,13 +137,13 @@ export default function Index({ cars, filters, makes, years, priceRange, fuelTyp
       <div className="py-12">
         <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
           {/* Hero Section */}
-          <div className="bg-primary text-white rounded-lg shadow-lg overflow-hidden mb-8">
-            <div className="max-w-7xl mx-auto text-center">
-              <h1 className="text-4xl font-bold mb-4">Find Your Perfect Used Car</h1>
-              <p className="text-xl mb-8">Browse our selection of quality used cars at competitive prices</p>
+          <div className="bg-primary text-white rounded-lg shadow-lg overflow-hidden mb-8 py-12">
+            <div className="max-w-7xl mx-auto text-center px-4">
+              <h1 className="text-5xl font-bold mb-6">Find Your Perfect Used Car</h1>
+              <p className="text-2xl mb-10">Browse our selection of quality used cars at competitive prices</p>
 
               {/* Search Bar */}
-              <div className="max-w-3xl mx-auto mb-8">
+              <div className="max-w-3xl mx-auto mb-4">
                 <form onSubmit={handleSearch} className="flex">
                   <input
                     type="text"
@@ -271,14 +271,6 @@ export default function Index({ cars, filters, makes, years, priceRange, fuelTyp
                     ))}
                   </select>
                 </div>
-
-                {/* Apply Filters Button */}
-                <button
-                  onClick={applyFilters}
-                  className="w-full bg-primary text-white py-2 rounded-md hover:bg-opacity-90"
-                >
-                  Apply Filters
-                </button>
               </div>
             </div>
 
@@ -313,7 +305,7 @@ export default function Index({ cars, filters, makes, years, priceRange, fuelTyp
                     <div key={car.id} className="bg-white rounded-lg shadow overflow-hidden">
                       <div className="relative">
                         <img
-                          src={car.images && car.images.length > 0 ? car.images[0].url : '/images/car-placeholder.jpg'}
+                          src={car.images && car.images.length > 0 && typeof car.images[0] === 'object' ? car.images[0].url : '/images/car-placeholder.jpg'}
                           alt={`${car.make} ${car.model}`}
                           className="w-full h-48 object-cover"
                         />

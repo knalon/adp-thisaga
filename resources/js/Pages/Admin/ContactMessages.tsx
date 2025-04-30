@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import AppLayout from '@/Layouts/AppLayout';
 import { PageProps } from '@/types';
 import { ChatBubbleLeftRightIcon, CheckCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { Inertia } from '@inertiajs/inertia';
 
 interface ContactMessage {
   id: number;
@@ -35,12 +34,12 @@ export default function ContactMessages({ auth, contactMessages, unreadCount, fl
   });
 
   const markAsRead = (id: number) => {
-    Inertia.patch(route('admin.contact-messages.mark-read', id));
+    router.patch(route('admin.contact-messages.mark-read', id));
   };
 
   const deleteMessage = (id: number) => {
     if (confirm('Are you sure you want to delete this message?')) {
-      Inertia.delete(route('admin.contact-messages.destroy', id));
+      router.delete(route('admin.contact-messages.destroy', id));
     }
   };
 

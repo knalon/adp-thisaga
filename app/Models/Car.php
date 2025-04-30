@@ -37,6 +37,8 @@ class Car extends Model implements HasMedia
         'is_pending_sale',
         'sold_at',
         'slug',
+        'approval_status',
+        'rejection_reason',
     ];
 
     /**
@@ -121,7 +123,7 @@ class Car extends Model implements HasMedia
      */
     public function getPrimaryImage()
     {
-        return $this->images()->where('is_primary', true)->first() ?: 
+        return $this->images()->where('is_primary', true)->first() ?:
                $this->images()->first();
     }
 
@@ -205,11 +207,11 @@ class Car extends Model implements HasMedia
         if ($min) {
             $query->where('price', '>=', $min);
         }
-        
+
         if ($max) {
             $query->where('price', '<=', $max);
         }
-        
+
         return $query;
     }
 

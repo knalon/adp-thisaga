@@ -7,157 +7,11 @@ export interface User {
     email_verified_at: string;
     roles: Role[];
     stripe_account_active: boolean;
-    vendor: {
-      status: string;
-      status_label: string;
-      store_name: string;
-      store_address: string;
-      cover_image: string;
-    }
 }
 
 export interface Role {
   id: number;
   name: string;
-}
-
-export type Image = {
-    id: number;
-    thumb: string;
-    small: string;
-    large: string;
-
-}
-
-export type VariationTypeOption = {
-    id: number;
-    name: string;
-    images: Image[];
-    type: VariationType
-}
-
-export type VariationType = {
-    id: number;
-    name: string;
-    type: 'Select' | 'Radio' | 'Image';
-    options: VariationTypeOption[]
-}
-
-export type Product = {
-    id: number;
-    title: string;
-    slug: string;
-    price: number;
-    quantity: number;
-    image: string;
-    images: Image[];
-    short_description: string;
-    description: string;
-    meta_title: string;
-    meta_description: string;
-    user:{
-      id: number;
-      name: string;
-      store_name: string;
-    };
-    department: {
-      id: number;
-      name: string;
-      slug: string;
-    };
-    variationTypes: VariationType[],
-    variations: Array<{
-      id: number;
-      variation_type_option_ids: number[];
-      quantity: number;
-      price: number;
-    }>
-}
-
-export type CartItem = {
-  id: number;
-  product_id: number;
-  title: string;
-  slug: string;
-  price: number;
-  quantity: number;
-  image: string;
-  option_ids: Record<string, number>;
-  options: VariationTypeOption[]
-}
-
-export type GroupedCartItems = {
-  user: User;
-  items: CartItem[];
-  totalQuantity: number;
-  totalPrice: number;
-}
-
-export type PaginationProps<T> = {
-  data: Array<T>
-}
-
-// Fix for line 110
-export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = {
-  auth: {
-    user: User;
-  };
-  flash: {
-    message: string;
-    success: string;
-    error: string;
-  };
-  errors: Record<string, string>;
-} & T;
-
-
-export type OrderItem= {
-  id: number;
-  quantity: number;
-  price: number;
-  variation_type_option_ids: number[];
-  product: {
-    id: number;
-    title: string;
-    slug: string;
-    description: string;
-    image: string;
-  }
-}
-
-export type Order = {
-  id: number;
-  total_price: number;
-  status: string;
-  created_at: string;
-  vendorUser: {
-    id: string;
-    name: string;
-    email: string;
-    store_name: string;
-    store_address: string;
-  };
-  orderItems: OrderItem[]
-}
-
-export type Vendor = {
-  id: number;
-  store_name: string;
-  store_address: string;
-}
-
-export type Category = {
-  id: number;
-  name: string;
-}
-
-export type Department = {
-  id: number;
-  name: string;
-  slug: string;
-  meta_title: string;
-  meta_description: string;
-  categories: Category[]
 }
 
 export interface Car {
@@ -233,3 +87,15 @@ export interface Transaction {
   car?: Car;
   appointment?: Appointment;
 }
+
+export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = {
+  auth: {
+    user: User;
+  };
+  flash: {
+    message: string;
+    success: string;
+    error: string;
+  };
+  errors: Record<string, string>;
+} & T;

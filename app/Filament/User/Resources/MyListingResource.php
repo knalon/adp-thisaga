@@ -59,7 +59,7 @@ class MyListingResource extends Resource
                         Forms\Components\ColorPicker::make('color')
                             ->required(),
                     ]),
-                
+
                 Forms\Components\Section::make('Additional Information')
                     ->schema([
                         Forms\Components\Select::make('transmission')
@@ -101,6 +101,16 @@ class MyListingResource extends Resource
                             ->label('Active')
                             ->helperText('Inactive listings will not be visible to buyers')
                             ->default(true),
+                        Forms\Components\Select::make('approval_status')
+                            ->options([
+                                'pending' => 'Pending Approval',
+                                'approved' => 'Approved',
+                                'rejected' => 'Rejected',
+                            ])
+                            ->default('pending')
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->visible(fn ($record) => $record !== null),
                     ]),
             ]);
     }
@@ -124,6 +134,13 @@ class MyListingResource extends Resource
                 Tables\Columns\ToggleColumn::make('is_active')
                     ->label('Active')
                     ->sortable(),
+                Tables\Columns\BadgeColumn::make('approval_status')
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'approved',
+                        'danger' => 'rejected',
+                    ])
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->label('Listed On')
@@ -134,6 +151,12 @@ class MyListingResource extends Resource
                     ->options([
                         '1' => 'Active',
                         '0' => 'Inactive',
+                    ]),
+                Tables\Filters\SelectFilter::make('approval_status')
+                    ->options([
+                        'pending' => 'Pending Approval',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
                     ]),
             ])
             ->actions([
@@ -177,4 +200,11 @@ class MyListingResource extends Resource
             'view' => Pages\ViewMyListing::route('/{record}'),
         ];
     }
-} 
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::where('user_id', Auth::id())
+            ->where('approval_status', 'pending')
+            ->count();
+    }
+}
