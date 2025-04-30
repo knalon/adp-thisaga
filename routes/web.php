@@ -44,6 +44,12 @@ Route::middleware('auth')->group(function () {
             return Inertia::render('User/Cars');
         })->name('user.cars');
 
+        // Car routes
+        Route::post('/cars', [CarController::class, 'store'])->name('user.cars.store');
+        Route::get('/cars/create', function () {
+            return Inertia::render('User/CarsCreate');
+        })->name('user.cars.create');
+
         Route::get('/appointments', function () {
             return Inertia::render('User/Appointments');
         })->name('user.appointments');
@@ -63,11 +69,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/saved', function () {
             return Inertia::render('User/Saved');
         })->name('user.saved');
-
-        // Car create page
-        Route::get('/cars/create', function () {
-            return Inertia::render('User/CarsCreate');
-        })->name('user.cars.create');
     });
 
     // Legacy user routes - keep for compatibility

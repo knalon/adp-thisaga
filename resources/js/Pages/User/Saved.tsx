@@ -7,7 +7,10 @@ import {
   TruckIcon,
   CalendarIcon,
   HeartIcon,
-  CogIcon
+  CogIcon,
+  CurrencyDollarIcon,
+  CheckCircleIcon,
+  ShoppingCartIcon
 } from '@heroicons/react/24/outline';
 
 interface UserSidebarItem {
@@ -25,6 +28,9 @@ export default function UserSaved({ auth }: PageProps) {
     { name: 'Overview', href: '/user/dashboard', icon: UserIcon, current: activeSection === 'overview' },
     { name: 'My Cars', href: '/user/cars', icon: TruckIcon, current: activeSection === 'cars' },
     { name: 'My Appointments', href: '/user/appointments', icon: CalendarIcon, current: activeSection === 'appointments' },
+    { name: 'My Bids', href: '/user/bids', icon: CurrencyDollarIcon, current: activeSection === 'bids' },
+    { name: 'My Sold Cars', href: '/user/sold-cars', icon: CheckCircleIcon, current: activeSection === 'sold-cars' },
+    { name: 'My Purchased Cars', href: '/user/purchased-cars', icon: ShoppingCartIcon, current: activeSection === 'purchased-cars' },
     { name: 'Saved Cars', href: '/user/saved', icon: HeartIcon, current: activeSection === 'saved' },
     { name: 'Settings', href: '/profile', icon: CogIcon, current: activeSection === 'settings' },
   ];

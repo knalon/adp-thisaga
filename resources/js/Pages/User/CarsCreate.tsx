@@ -7,7 +7,7 @@ import { toast } from 'react-hot-toast';
 interface CarFormData {
     make: string;
     model: string;
-    registration_year: string;
+    year: string;
     price: string;
     mileage: string;
     color: string;
@@ -26,7 +26,7 @@ const CarsCreate: React.FC<PageProps> = ({ auth }) => {
     const { data, setData, post, processing, errors, reset } = useForm<CarFormData>({
         make: '',
         model: '',
-        registration_year: '',
+        year: '',
         price: '',
         mileage: '',
         color: '',
@@ -67,40 +67,43 @@ const CarsCreate: React.FC<PageProps> = ({ auth }) => {
 
         // Create FormData object for file upload
         const formData = new FormData();
-        Object.entries(data).forEach(([key, value]) => {
-            if (key === 'images') {
-                value.forEach((file: File) => {
-                    formData.append('images[]', file);
-                });
-            } else if (key === 'features') {
-                value.forEach((feature: string) => {
-                    formData.append('features[]', feature);
-                });
-            } else {
-                formData.append(key, value);
-            }
+
+        // Add all form fields to FormData
+        formData.append('make', data.make);
+        formData.append('model', data.model);
+        formData.append('year', data.year);
+        formData.append('price', data.price);
+        formData.append('mileage', data.mileage);
+        formData.append('color', data.color);
+        formData.append('transmission', data.transmission);
+        formData.append('fuel_type', data.fuel_type);
+        formData.append('description', data.description);
+
+        // Add features array
+        data.features.forEach((feature, index) => {
+            formData.append(`features[${index}]`, feature);
         });
 
-        // Convert FormData to a plain object for Inertia
-        const formDataObj = Object.fromEntries(formData.entries());
-        post(route('cars.store'), formDataObj);
+        // Add images
+        data.images.forEach((file, index) => {
+            formData.append(`images[${index}]`, file);
+        });
+
+        post(route('cars.store'), formData, {
+            preserveScroll: true,
+            onSuccess: () => {
+                toast.success('Car listing submitted successfully! Waiting for admin approval.');
+                reset();
+                setPreviewImages([]);
+                router.visit(route('user.cars'));
+            },
+            onError: (errors) => {
+                Object.entries(errors).forEach(([field, message]) => {
+                    toast.error(`${field}: ${message}`);
+                });
+            }
+        });
     };
-
-    // Add effect to handle form submission response
-    React.useEffect(() => {
-        if (processing) return;
-
-        if (Object.keys(errors).length === 0) {
-            toast.success('Car listing submitted successfully! Waiting for admin approval.');
-            reset();
-            setPreviewImages([]);
-            router.visit(route('user.cars'));
-        } else {
-            Object.entries(errors).forEach(([field, message]) => {
-                toast.error(`${field}: ${message}`);
-            });
-        }
-    }, [processing, errors]);
 
     return (
         <AppLayout>
@@ -146,21 +149,21 @@ const CarsCreate: React.FC<PageProps> = ({ auth }) => {
                                     </div>
 
                                     <div>
-                                        <label htmlFor="registration_year" className="block text-sm font-medium text-gray-700 mb-1">
+                                        <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-1">
                                             Registration Year
                                         </label>
                                         <input
-                                            id="registration_year"
+                                            id="year"
                                             type="number"
                                             className="input input-bordered w-full"
-                                            value={data.registration_year}
-                                            onChange={e => setData('registration_year', e.target.value)}
+                                            value={data.year}
+                                            onChange={e => setData('year', e.target.value)}
                                             required
                                             min="1900"
                                             max={new Date().getFullYear()}
                                         />
-                                        {errors.registration_year && (
-                                            <div className="text-error text-sm mt-1">{errors.registration_year}</div>
+                                        {errors.year && (
+                                            <div className="text-error text-sm mt-1">{errors.year}</div>
                                         )}
                                     </div>
 
