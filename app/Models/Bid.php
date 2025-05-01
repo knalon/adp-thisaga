@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BidStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -23,6 +24,7 @@ class Bid extends Model
         'message',
         'status',
         'expiry_date',
+        'rejection_reason',
     ];
 
     /**
@@ -33,6 +35,7 @@ class Bid extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'expiry_date' => 'datetime',
+        'status' => BidStatus::class,
     ];
 
     /**

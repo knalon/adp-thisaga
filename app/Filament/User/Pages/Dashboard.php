@@ -2,34 +2,65 @@
 
 namespace App\Filament\User\Pages;
 
-use App\Filament\User\Widgets\DashboardStatsWidget;
-use App\Filament\User\Widgets\CarSearchWidget;
-use App\Filament\User\Widgets\MyRecentActivitiesWidget;
-use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Pages\Page;
+use App\Filament\User\Widgets\UserStatsOverview;
+use App\Filament\User\Widgets\RecentActivity;
+use Filament\Navigation\NavigationItem;
+use Filament\Navigation\NavigationGroup;
 
-class Dashboard extends BaseDashboard
+class Dashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static ?string $navigationLabel = 'Overview';
+    protected static ?int $navigationSort = 1;
 
     protected static string $view = 'filament.user.pages.dashboard';
-
-    public static function getNavigationLabel(): string
-    {
-        return 'Dashboard';
-    }
 
     protected function getHeaderWidgets(): array
     {
         return [
-            DashboardStatsWidget::class,
+            UserStatsOverview::class,
+            RecentActivity::class,
         ];
     }
 
-    protected function getFooterWidgets(): array
+    public static function getNavigationItems(): array
     {
         return [
-            CarSearchWidget::class,
-            MyRecentActivitiesWidget::class,
+            NavigationItem::make('Overview')
+                ->icon('heroicon-o-home')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.pages.dashboard'))
+                ->url(route('filament.user.pages.dashboard')),
+            
+            NavigationItem::make('My Cars')
+                ->icon('heroicon-o-truck')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.cars.*'))
+                ->url(route('filament.user.resources.cars.index')),
+            
+            NavigationItem::make('My Appointments')
+                ->icon('heroicon-o-calendar')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.appointments.*'))
+                ->url(route('filament.user.resources.appointments.index')),
+            
+            NavigationItem::make('My Bids')
+                ->icon('heroicon-o-currency-dollar')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.bids.*'))
+                ->url(route('filament.user.resources.bids.index')),
+            
+            NavigationItem::make('My Sold Cars')
+                ->icon('heroicon-o-check-circle')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.sold-cars.*'))
+                ->url(route('filament.user.resources.sold-cars.index')),
+            
+            NavigationItem::make('My Purchased Cars')
+                ->icon('heroicon-o-shopping-cart')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.purchased-cars.*'))
+                ->url(route('filament.user.resources.purchased-cars.index')),
+            
+            NavigationItem::make('Settings')
+                ->icon('heroicon-o-cog')
+                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.pages.settings'))
+                ->url(route('filament.user.pages.settings')),
         ];
     }
 }

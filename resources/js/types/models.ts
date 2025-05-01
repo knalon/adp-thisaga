@@ -1,5 +1,6 @@
 export interface Car {
     id: number;
+    user_id: number;
     make: string;
     model: string;
     year: number;
@@ -9,12 +10,13 @@ export interface Car {
     transmission: string;
     color: string;
     description: string;
-    features: string[];
-    images: { url: string }[];
-    status: 'pending' | 'approved' | 'rejected';
+    status: string;
+    is_approved: boolean;
+    is_active: boolean;
     created_at: string;
     updated_at: string;
-    user_id: number;
+    images: CarImage[];
+    user: User;
 }
 
 export interface User {

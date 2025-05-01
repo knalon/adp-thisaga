@@ -186,16 +186,25 @@ class CarController extends Controller
                 'transmission' => 'nullable|string|max:50',
                 'color' => 'nullable|string|max:30',
                 'description' => 'required|string',
-                'features' => 'nullable|array',
-                'features.*' => 'string',
                 'images' => 'required|array|min:1',
                 'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             ]);
 
             // Create car record
-            $car = new Car($validated);
+            $car = new Car();
             $car->user_id = Auth::id();
-            $car->status = 'pending'; // Set initial status as pending for admin approval
+            $car->make = $validated['make'];
+            $car->model = $validated['model'];
+            $car->year = $validated['year'];
+            $car->price = $validated['price'];
+            $car->mileage = $validated['mileage'] ?? null;
+            $car->fuel_type = $validated['fuel_type'] ?? null;
+            $car->transmission = $validated['transmission'] ?? null;
+            $car->color = $validated['color'] ?? null;
+            $car->description = $validated['description'];
+            $car->status = 'pending';
+            $car->is_approved = false;
+            $car->is_active = false;
             $car->save();
 
             // Handle images
@@ -204,21 +213,19 @@ class CarController extends Controller
                     $path = $image->store('car-images', 'public');
                     $car->images()->create([
                         'path' => $path,
-                        'type' => 'image',
+                        'is_primary' => $car->images()->count() === 0 // First image is primary
                     ]);
                 }
             }
 
             DB::commit();
 
-            return redirect()->route('dashboard')
-                ->with('success', 'Car listing submitted successfully! Waiting for admin approval.');
+            return redirect()->route('user.cars')->with('success', 'Car listing submitted successfully! Waiting for admin approval.');
 
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Car creation failed: ' . $e->getMessage());
-
-            return back()->with('error', 'Failed to create car listing. Please try again.');
+            return back()->withErrors(['error' => 'Failed to create car listing. Please try again.'])->withInput();
         }
     }
 
@@ -264,8 +271,6 @@ class CarController extends Controller
             'transmission' => 'nullable|string|max:50',
             'color' => 'nullable|string|max:30',
             'description' => 'required|string',
-            'features' => 'nullable|array',
-            'features.*' => 'string',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'remove_images' => 'nullable|array',

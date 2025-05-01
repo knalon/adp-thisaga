@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CarResource\Pages;
-use App\Filament\Resources\CarResource\RelationManagers;
 use App\Models\Car;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -12,121 +11,65 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Models\ActivityLog;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Components\Section;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Columns\ImageColumn;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
-use Filament\Tables\Columns\IconColumn;
 
 class CarResource extends Resource
 {
     protected static ?string $model = Car::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
+
     protected static ?string $navigationGroup = 'Car Management';
-    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make('Car Information')
-                    ->schema([
-                        TextInput::make('name')
-                            ->required()
-                            ->maxLength(255),
-                        TextInput::make('slug')
-                            ->required()
-                            ->maxLength(255)
-                            ->unique(ignoreRecord: true),
-                        TextInput::make('make')
+                Forms\Components\TextInput::make('make')
                     ->required()
                     ->maxLength(255),
-                        TextInput::make('model')
+                Forms\Components\TextInput::make('model')
                     ->required()
                     ->maxLength(255),
-                        TextInput::make('year')
-                            ->required()
-                            ->numeric()
-                            ->minValue(1900)
-                            ->maxValue(date('Y') + 1),
-                        Select::make('condition')
-                            ->options([
-                                'new' => 'New',
-                                'used' => 'Used',
-                                'certified' => 'Certified Pre-Owned',
-                            ])
-                            ->required(),
-                        Textarea::make('description')
-                    ->required()
-                            ->maxLength(1000)
-                            ->columnSpanFull(),
-                    ])->columns(2),
-
-                Section::make('Pricing and Details')
-                    ->schema([
-                        TextInput::make('price')
+                Forms\Components\TextInput::make('year')
                     ->required()
                     ->numeric()
-                            ->minValue(0)
+                    ->minValue(1900)
+                    ->maxValue(date('Y') + 1),
+                Forms\Components\TextInput::make('price')
+                    ->required()
+                    ->numeric()
                     ->prefix('$'),
-                        TextInput::make('mileage')
-                            ->required()
-                            ->numeric()
-                            ->minValue(0)
-                            ->suffix('miles'),
-                        TextInput::make('color')
-                            ->required()
-                            ->maxLength(50),
-                        TextInput::make('engine')
-                            ->required()
-                            ->maxLength(100),
-                        TextInput::make('transmission')
-                            ->required()
-                            ->maxLength(50),
-                        TextInput::make('fuel_type')
-                            ->required()
-                            ->maxLength(50),
-                    ])->columns(2),
-
-                Section::make('Images')
-                    ->schema([
-                        FileUpload::make('featured_image')
-                            ->image()
-                            ->directory('cars/featured')
-                            ->required()
-                            ->columnSpanFull(),
-                        FileUpload::make('gallery')
-                            ->image()
-                            ->multiple()
-                            ->directory('cars/gallery')
-                            ->maxFiles(10)
-                    ->columnSpanFull(),
-                    ]),
-
-                Section::make('Status')
-                    ->schema([
-                        Toggle::make('is_approved')
-                            ->label('Approved')
-                            ->default(false)
-                            ->helperText('Only approved cars will be visible to users'),
-                        Toggle::make('is_active')
-                            ->label('Active')
-                            ->default(true)
-                            ->helperText('Toggle to hide/show this car listing'),
-                        Select::make('user_id')
-                            ->relationship('user', 'name')
-                            ->searchable()
-                            ->preload()
+                Forms\Components\TextInput::make('mileage')
+                    ->required()
+                    ->numeric()
+                    ->suffix('miles'),
+                Forms\Components\Select::make('transmission')
+                    ->options([
+                        'automatic' => 'Automatic',
+                        'manual' => 'Manual',
+                    ])
                     ->required(),
-                    ]),
+                Forms\Components\Select::make('fuel_type')
+                    ->options([
+                        'petrol' => 'Petrol',
+                        'diesel' => 'Diesel',
+                        'electric' => 'Electric',
+                        'hybrid' => 'Hybrid',
+                    ])
+                    ->required(),
+                Forms\Components\Textarea::make('description')
+                    ->required()
+                    ->maxLength(1000),
+                Forms\Components\FileUpload::make('images')
+                    ->multiple()
+                    ->image()
+                    ->maxFiles(5)
+                    ->directory('cars'),
+                Forms\Components\Toggle::make('is_featured')
+                    ->label('Featured Car'),
+                Forms\Components\Toggle::make('is_available')
+                    ->label('Available for Sale')
+                    ->default(true),
             ]);
     }
 
@@ -134,175 +77,56 @@ class CarResource extends Resource
     {
         return $table
             ->columns([
-                ImageColumn::make('featured_image')
-                    ->square()
-                    ->label('Image'),
-                TextColumn::make('name')
-                    ->searchable()
+                Tables\Columns\TextColumn::make('make')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('model')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('year')
                     ->sortable(),
-                TextColumn::make('make')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('model')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('year')
-                    ->sortable(),
-                TextColumn::make('price')
+                Tables\Columns\TextColumn::make('price')
                     ->money('USD')
                     ->sortable(),
-                IconColumn::make('is_approved')
-                    ->boolean()
-                    ->label('Approved')
+                Tables\Columns\TextColumn::make('mileage')
+                    ->numeric()
                     ->sortable(),
-                ToggleColumn::make('is_active')
-                    ->label('Active')
-                    ->sortable(),
-                TextColumn::make('user.name')
-                    ->label('Owner')
-                    ->searchable()
-                    ->sortable(),
-                TextColumn::make('created_at')
+                Tables\Columns\TextColumn::make('transmission')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('is_featured')
+                    ->boolean(),
+                Tables\Columns\IconColumn::make('is_available')
+                    ->boolean(),
+                Tables\Columns\TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('is_approved')
+                Tables\Filters\SelectFilter::make('transmission')
                     ->options([
-                        '1' => 'Approved',
-                        '0' => 'Not Approved',
-                    ])
-                    ->label('Approval Status'),
-                SelectFilter::make('is_active')
-                    ->options([
-                        '1' => 'Active',
-                        '0' => 'Inactive',
-                    ])
-                    ->label('Active Status'),
-                SelectFilter::make('condition')
-                    ->options([
-                        'new' => 'New',
-                        'used' => 'Used',
-                        'certified' => 'Certified Pre-Owned',
+                        'automatic' => 'Automatic',
+                        'manual' => 'Manual',
                     ]),
-                SelectFilter::make('user')
-                    ->relationship('user', 'name')
-                    ->searchable()
-                    ->preload(),
+                Tables\Filters\SelectFilter::make('fuel_type')
+                    ->options([
+                        'petrol' => 'Petrol',
+                        'diesel' => 'Diesel',
+                        'electric' => 'Electric',
+                        'hybrid' => 'Hybrid',
+                    ]),
+                Tables\Filters\TernaryFilter::make('is_featured'),
+                Tables\Filters\TernaryFilter::make('is_available'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('approve')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->action(function (Car $car) {
-                        $car->is_approved = true;
-                        $car->save();
-
-                        ActivityLog::log(
-                            'Approved car listing',
-                            'car_approve',
-                            $car,
-                            ['car_id' => $car->id, 'car_name' => $car->name]
-                        );
-                    })
-                    ->visible(fn (Car $car) => !$car->is_approved),
-                Tables\Actions\Action::make('reject')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->action(function (Car $car) {
-                        $car->is_approved = false;
-                        $car->save();
-
-                        ActivityLog::log(
-                            'Rejected car listing',
-                            'car_reject',
-                            $car,
-                            ['car_id' => $car->id, 'car_name' => $car->name]
-                        );
-                    })
-                    ->visible(fn (Car $car) => $car->is_approved),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                ActivityLog::log(
-                                    'Deleted car listing',
-                                    'car_delete',
-                                    null,
-                                    ['car_id' => $record->id, 'car_name' => $record->name]
-                                );
-                            }
-                            $records->each->delete();
-                        }),
-                    Tables\Actions\BulkAction::make('approve')
-                        ->label('Approve Selected')
-                        ->icon('heroicon-o-check')
-                        ->color('success')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                $record->is_approved = true;
-                                $record->save();
-                                ActivityLog::log(
-                                    'Approved car listing',
-                                    'car_approve',
-                                    $record,
-                                    ['car_id' => $record->id, 'car_name' => $record->name]
-                                );
-                            }
-                        }),
-                    Tables\Actions\BulkAction::make('reject')
-                        ->label('Reject Selected')
-                        ->icon('heroicon-o-x-mark')
-                        ->color('danger')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                $record->is_approved = false;
-                                $record->save();
-                                ActivityLog::log(
-                                    'Rejected car listing',
-                                    'car_reject',
-                                    $record,
-                                    ['car_id' => $record->id, 'car_name' => $record->name]
-                                );
-                            }
-                        }),
-                    Tables\Actions\BulkAction::make('deactivate')
-                        ->label('Deactivate Selected')
-                        ->icon('heroicon-o-x-circle')
-                        ->color('warning')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                $record->deactivate();
-                                ActivityLog::log(
-                                    'Deactivated car listing',
-                                    'car_deactivate',
-                                    $record,
-                                    ['car_id' => $record->id, 'car_name' => $record->name]
-                                );
-                            }
-                        }),
-                    Tables\Actions\BulkAction::make('activate')
-                        ->label('Activate Selected')
-                        ->icon('heroicon-o-check-circle')
-                        ->color('success')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                $record->activate();
-                                ActivityLog::log(
-                                    'Activated car listing',
-                                    'car_activate',
-                                    $record,
-                                    ['car_id' => $record->id, 'car_name' => $record->name]
-                                );
-                            }
-                        }),
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -310,8 +134,7 @@ class CarResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\AppointmentsRelationManager::class,
-            RelationManagers\BidsRelationManager::class,
+            //
         ];
     }
 
@@ -324,13 +147,11 @@ class CarResource extends Resource
         ];
     }
 
-    public static function getNavigationBadge(): ?string
+    public static function getEloquentQuery(): Builder
     {
-        return static::getModel()::where('is_approved', false)->count() ?: null;
-    }
-
-    public static function getNavigationBadgeColor(): ?string
-    {
-        return static::getModel()::where('is_approved', false)->count() ? 'warning' : null;
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
     }
 }

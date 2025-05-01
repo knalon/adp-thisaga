@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Illuminate\Support\Str;
+use App\Enums\CarStatus;
+use App\Enums\FuelType;
+use App\Enums\TransmissionType;
 
 class Car extends Model implements HasMedia
 {
@@ -39,6 +42,9 @@ class Car extends Model implements HasMedia
         'slug',
         'approval_status',
         'rejection_reason',
+        'status',
+        'name',
+        'images'
     ];
 
     /**
@@ -55,6 +61,10 @@ class Car extends Model implements HasMedia
         'is_sold' => 'boolean',
         'is_pending_sale' => 'boolean',
         'sold_at' => 'datetime',
+        'images' => 'array',
+        'transmission' => TransmissionType::class,
+        'fuel_type' => FuelType::class,
+        'status' => CarStatus::class,
     ];
 
     protected static function boot()

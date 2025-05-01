@@ -17,6 +17,10 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use App\Http\Middleware\EnsureUserRole;
+use App\Filament\User\Widgets\MyCarsOverview;
+use App\Filament\User\Widgets\MyBidsOverview;
+use App\Filament\User\Widgets\MyAppointmentsOverview;
 
 class UserPanelProvider extends PanelProvider
 {
@@ -26,15 +30,9 @@ class UserPanelProvider extends PanelProvider
             ->id('user')
             ->path('user')
             ->login()
+            ->registration()
             ->colors([
-                'primary' => '#00494D', // Midnight Teal
-                'secondary' => '#FFC857', // Amber Gold
-                'accent' => '#F16A70', // Blush Coral
-                'gray' => '#6E7C7C', // Slate Gray
-                'danger' => '#dc2626',
-                'success' => '#16a34a',
-                'warning' => '#eab308',
-                'info' => '#06b6d4',
+                'primary' => Color::Blue,
             ])
             ->brandName('ABC Cars User Portal')
             ->favicon(asset('images/favicon.ico'))
@@ -45,6 +43,9 @@ class UserPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/User/Widgets'), for: 'App\\Filament\\User\\Widgets')
             ->widgets([
+                MyCarsOverview::class,
+                MyBidsOverview::class,
+                MyAppointmentsOverview::class,
                 Widgets\AccountWidget::class,
             ])
             ->middleware([
@@ -57,6 +58,7 @@ class UserPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                fn () => EnsureUserRole::class . ':user',
             ])
             ->authMiddleware([
                 Authenticate::class,
@@ -64,7 +66,6 @@ class UserPanelProvider extends PanelProvider
             ->databaseNotifications()
             ->databaseNotificationsPolling('30s')
             ->profile()
-            ->registration()
             ->passwordReset()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([

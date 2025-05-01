@@ -20,6 +20,7 @@ use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Enums\RolesEnum;
+use App\Http\Middleware\EnsureUserRole;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -31,14 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->colors([
-                'primary' => '#00494D', // Midnight Teal
-                'secondary' => '#FFC857', // Amber Gold
-                'accent' => '#F16A70', // Blush Coral
-                'gray' => '#6E7C7C', // Slate Gray
-                'danger' => '#dc2626',
-                'success' => '#16a34a',
-                'warning' => '#eab308',
-                'info' => '#06b6d4',
+                'primary' => Color::Amber,
             ])
             ->brandName('ABC Cars Admin')
             ->brandLogo(asset('images/logo.png'))
@@ -63,6 +57,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                fn () => EnsureUserRole::class . ':admin',
             ])
             ->authMiddleware([
                 Authenticate::class,

@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AppointmentResource\Pages;
-use App\Filament\Resources\AppointmentResource\RelationManagers;
 use App\Models\Appointment;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,72 +10,38 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Models\ActivityLog;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Section;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\Filter;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\BadgeColumn;
-use Illuminate\Support\Carbon;
-use App\Notifications\AppointmentStatusChanged;
 
 class AppointmentResource extends Resource
 {
     protected static ?string $model = Appointment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
+
     protected static ?string $navigationGroup = 'Appointments';
-    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Section::make('Appointment Details')
-                    ->schema([
-                        Select::make('user_id')
+                Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->label('Customer'),
-                        Select::make('car_id')
-                            ->relationship('car', 'name')
-                            ->searchable()
-                            ->preload()
                     ->required(),
-                        DateTimePicker::make('appointment_date')
-                            ->required()
-                            ->minDate(now())
-                            ->helperText('Select a date and time for the appointment'),
-                        Select::make('status')
-                            ->options([
-                                'pending' => 'Pending',
-                                'approved' => 'Approved',
-                                'rejected' => 'Rejected',
-                                'completed' => 'Completed',
-                                'cancelled' => 'Cancelled',
-                            ])
-                            ->required()
-                            ->default('pending'),
+                Forms\Components\Select::make('car_id')
+                    ->relationship('car', 'make')
+                    ->required(),
+                Forms\Components\DateTimePicker::make('appointment_date')
+                    ->required()
+                    ->minDate(now()),
+                Forms\Components\Select::make('status')
+                    ->options([
+                        'pending' => 'Pending',
+                        'confirmed' => 'Confirmed',
+                        'cancelled' => 'Cancelled',
+                        'completed' => 'Completed',
                     ])
-                    ->columns(2),
-                Section::make('Additional Information')
-                    ->schema([
-                        Textarea::make('notes')
-                            ->maxLength(500)
-                            ->columnSpanFull(),
-                        TextInput::make('bid_amount')
-                    ->numeric()
-                            ->minValue(0)
-                            ->prefix('$'),
-                    ]),
+                    ->required(),
+                Forms\Components\Textarea::make('notes')
+                    ->maxLength(500),
             ]);
     }
 
@@ -84,48 +49,36 @@ class AppointmentResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('user.name')
-                    ->label('Customer')
+                Tables\Columns\TextColumn::make('user.name')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('car.name')
-                    ->label('Car')
+                Tables\Columns\TextColumn::make('car.make')
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('appointment_date')
+                Tables\Columns\TextColumn::make('appointment_date')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'approved' => 'success',
-                        'rejected' => 'danger',
-                        'pending' => 'warning',
-                        'completed' => 'info',
-                        'cancelled' => 'gray',
-                        default => 'gray',
-                    }),
-                TextColumn::make('bid_amount')
-                    ->money('USD')
-                    ->sortable(),
-                TextColumn::make('created_at')
+                Tables\Columns\BadgeColumn::make('status')
+                    ->colors([
+                        'warning' => 'pending',
+                        'success' => 'confirmed',
+                        'danger' => 'cancelled',
+                        'primary' => 'completed',
+                    ]),
+                Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('status')
+                Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'pending' => 'Pending',
-                        'approved' => 'Approved',
-                        'rejected' => 'Rejected',
-                        'completed' => 'Completed',
+                        'confirmed' => 'Confirmed',
                         'cancelled' => 'Cancelled',
+                        'completed' => 'Completed',
                     ]),
-                Filter::make('appointment_date')
+                Tables\Filters\Filter::make('appointment_date')
                     ->form([
                         Forms\Components\DatePicker::make('from'),
                         Forms\Components\DatePicker::make('until'),
@@ -141,202 +94,14 @@ class AppointmentResource extends Resource
                                 fn (Builder $query, $date): Builder => $query->whereDate('appointment_date', '<=', $date),
                             );
                     }),
-                Filter::make('today')
-                    ->label('Today\'s Appointments')
-                    ->query(fn (Builder $query): Builder => $query->whereDate('appointment_date', Carbon::today())),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('approve')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (Appointment $appointment) => $appointment->status === 'pending')
-                    ->action(function (Appointment $appointment) {
-                        $previousStatus = $appointment->status;
-                        $appointment->status = 'approved';
-                        $appointment->save();
-
-                        // Send notification to user
-                        $appointment->user->notify(AppointmentStatusChanged::make($appointment, $previousStatus));
-
-                        ActivityLog::log(
-                            'Approved appointment',
-                            'appointment_approve',
-                            $appointment,
-                            [
-                                'appointment_id' => $appointment->id,
-                                'car_id' => $appointment->car_id,
-                                'user_id' => $appointment->user_id,
-                            ]
-                        );
-                    }),
-                Tables\Actions\Action::make('reject')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->visible(fn (Appointment $appointment) => $appointment->status === 'pending')
-                    ->action(function (Appointment $appointment) {
-                        $previousStatus = $appointment->status;
-                        $appointment->status = 'rejected';
-                        $appointment->save();
-
-                        // Send notification to user
-                        $appointment->user->notify(AppointmentStatusChanged::make($appointment, $previousStatus));
-
-                        ActivityLog::log(
-                            'Rejected appointment',
-                            'appointment_reject',
-                            $appointment,
-                            [
-                                'appointment_id' => $appointment->id,
-                                'car_id' => $appointment->car_id,
-                                'user_id' => $appointment->user_id,
-                            ]
-                        );
-                    }),
-                Tables\Actions\Action::make('complete')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (Appointment $appointment) => $appointment->status === 'approved')
-                    ->action(function (Appointment $appointment) {
-                        $previousStatus = $appointment->status;
-                        $appointment->status = 'completed';
-                        $appointment->save();
-
-                        // Send notification to user
-                        $appointment->user->notify(AppointmentStatusChanged::make($appointment, $previousStatus));
-
-                        ActivityLog::log(
-                            'Completed appointment',
-                            'appointment_complete',
-                            $appointment,
-                            [
-                                'appointment_id' => $appointment->id,
-                                'car_id' => $appointment->car_id,
-                                'user_id' => $appointment->user_id,
-                            ]
-                        );
-                    }),
-                Tables\Actions\Action::make('finalizeTransaction')
-                    ->label('Finalize Transaction')
-                    ->icon('heroicon-o-banknotes')
-                    ->color('secondary')
-                    ->requiresConfirmation()
-                    ->visible(fn (Appointment $appointment) => $appointment->status === 'approved' || $appointment->status === 'completed')
-                    ->form([
-                        Forms\Components\TextInput::make('amount')
-                            ->label('Transaction Amount')
-                            ->required()
-                            ->numeric()
-                            ->prefix('$')
-                            ->default(fn (Appointment $appointment) => $appointment->bid_amount ?? $appointment->car->price),
-                        Forms\Components\Textarea::make('notes')
-                            ->label('Transaction Notes'),
-                    ])
-                    ->action(function (Appointment $appointment, array $data) {
-                        // Create a new transaction
-                        $transaction = \App\Models\Transaction::create([
-                            'user_id' => $appointment->user_id,
-                            'car_id' => $appointment->car_id,
-                            'amount' => $data['amount'],
-                            'notes' => $data['notes'] ?? '',
-                            'status' => 'paid',
-                            'payment_method' => 'admin_finalized',
-                            'payment_date' => now(),
-                        ]);
-
-                        // Mark the car as sold
-                        $appointment->car->update([
-                            'is_sold' => true,
-                            'is_active' => false,
-                        ]);
-
-                        // Mark the appointment as completed
-                        $appointment->update([
-                            'status' => 'completed'
-                        ]);
-
-                        // Log the activity
-                        ActivityLog::log(
-                            'Finalized transaction',
-                            'transaction_create',
-                            $transaction,
-                            [
-                                'appointment_id' => $appointment->id,
-                                'car_id' => $appointment->car_id,
-                                'user_id' => $appointment->user_id,
-                                'amount' => $data['amount'],
-                            ]
-                        );
-
-                        // Notify the user
-                        $appointment->user->notify(new \App\Notifications\TransactionCreated($transaction, $appointment));
-                    }),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                ActivityLog::log(
-                                    'Deleted appointment',
-                                    'appointment_delete',
-                                    null,
-                                    [
-                                        'appointment_id' => $record->id,
-                                        'car_id' => $record->car_id,
-                                        'user_id' => $record->user_id,
-                                    ]
-                                );
-                            }
-                            $records->each->delete();
-                        }),
-                    Tables\Actions\BulkAction::make('approve')
-                        ->label('Approve Selected')
-                        ->icon('heroicon-o-check')
-                        ->color('success')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                if ($record->status === 'pending') {
-                                    $record->status = 'approved';
-                                    $record->save();
-                                    ActivityLog::log(
-                                        'Approved appointment',
-                                        'appointment_approve',
-                                        $record,
-                                        [
-                                            'appointment_id' => $record->id,
-                                            'car_id' => $record->car_id,
-                                            'user_id' => $record->user_id,
-                                        ]
-                                    );
-                                }
-                            }
-                        }),
-                    Tables\Actions\BulkAction::make('reject')
-                        ->label('Reject Selected')
-                        ->icon('heroicon-o-x-mark')
-                        ->color('danger')
-                        ->action(function ($records) {
-                            foreach ($records as $record) {
-                                if ($record->status === 'pending') {
-                                    $record->status = 'rejected';
-                                    $record->save();
-                                    ActivityLog::log(
-                                        'Rejected appointment',
-                                        'appointment_reject',
-                                        $record,
-                                        [
-                                            'appointment_id' => $record->id,
-                                            'car_id' => $record->car_id,
-                                            'user_id' => $record->user_id,
-                                        ]
-                                    );
-                                }
-                            }
-                        }),
+                    Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
     }
@@ -355,15 +120,5 @@ class AppointmentResource extends Resource
             'create' => Pages\CreateAppointment::route('/create'),
             'edit' => Pages\EditAppointment::route('/{record}/edit'),
         ];
-    }
-
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getModel()::where('status', 'pending')->count() ?: null;
-    }
-
-    public static function getNavigationBadgeColor(): ?string
-    {
-        return static::getModel()::where('status', 'pending')->count() ? 'warning' : null;
     }
 }

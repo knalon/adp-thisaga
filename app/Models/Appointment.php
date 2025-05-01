@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AppointmentStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,6 +37,7 @@ class Appointment extends Model
         'appointment_date' => 'datetime',
         'is_test_drive' => 'boolean',
         'is_purchase_appointment' => 'boolean',
+        'status' => AppointmentStatus::class,
     ];
 
     /**
