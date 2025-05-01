@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration
 {
@@ -18,11 +19,20 @@ return new class extends Migration
             $table->foreignId('bid_id')->nullable()->constrained()->onDelete('set null');
             $table->dateTime('appointment_date');
             $table->text('notes')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected', 'completed', 'cancelled'])->default('pending');
+            $table->string('status')->default('scheduled');
             $table->boolean('is_test_drive')->default(true);
             $table->boolean('is_purchase_appointment')->default(false);
             $table->timestamps();
         });
+
+        DB::statement("
+            CREATE OR REPLACE VIEW appointment_details AS
+            SELECT
+                a.*,
+                b.amount as bid_price
+            FROM appointments a
+            LEFT JOIN bids b ON a.bid_id = b.id
+        ");
     }
 
     /**
@@ -30,6 +40,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        DB::statement("DROP VIEW IF EXISTS appointment_details");
         Schema::dropIfExists('appointments');
     }
-}; 
+};

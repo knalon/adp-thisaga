@@ -57,10 +57,10 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                fn () => EnsureUserRole::class . ':admin',
             ])
             ->authMiddleware([
                 Authenticate::class,
+                'role:admin',
             ])
             ->authGuard('web')
             ->registration(false)

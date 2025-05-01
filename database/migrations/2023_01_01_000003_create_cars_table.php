@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('cars', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('slug')->unique();
             $table->string('make');
             $table->string('model');
             $table->integer('year');
@@ -26,7 +27,10 @@ return new class extends Migration
             $table->string('condition')->default('Used');
             $table->boolean('is_approved')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->string('approval_status')->default('pending');
+            $table->text('rejection_reason')->nullable();
             $table->boolean('is_sold')->default(false);
+            $table->string('status')->default('available');
             $table->timestamps();
         });
     }
@@ -38,4 +42,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('cars');
     }
-}; 
+};

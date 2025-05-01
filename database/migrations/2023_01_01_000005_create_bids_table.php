@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('car_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
             $table->text('message')->nullable();
-            $table->enum('status', ['pending', 'accepted', 'rejected', 'expired'])->default('pending');
+            $table->string('status')->default('pending');
             $table->timestamp('expiry_date')->nullable();
             $table->timestamps();
         });
@@ -30,4 +30,4 @@ return new class extends Migration
     {
         Schema::dropIfExists('bids');
     }
-}; 
+};
