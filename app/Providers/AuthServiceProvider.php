@@ -2,10 +2,10 @@
 
 namespace App\Providers;
 
-use App\Models\Car;
 use App\Models\Appointment;
-use App\Policies\CarPolicy;
+use App\Models\Car;
 use App\Policies\AppointmentPolicy;
+use App\Policies\CarPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 

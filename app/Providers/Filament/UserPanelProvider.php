@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\MyAppointments;
+use App\Filament\Pages\MyCars;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -21,6 +23,7 @@ use App\Http\Middleware\EnsureUserRole;
 use App\Filament\User\Widgets\MyCarsOverview;
 use App\Filament\User\Widgets\MyBidsOverview;
 use App\Filament\User\Widgets\MyAppointmentsOverview;
+use App\Filament\User\Pages as UserPages;
 
 class UserPanelProvider extends PanelProvider
 {
@@ -28,9 +31,8 @@ class UserPanelProvider extends PanelProvider
     {
         return $panel
             ->id('user')
-            ->path('user')
+            ->path('user/dashboard')
             ->login()
-            ->registration()
             ->colors([
                 'primary' => Color::Blue,
             ])
@@ -39,7 +41,9 @@ class UserPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/User/Resources'), for: 'App\\Filament\\User\\Resources')
             ->discoverPages(in: app_path('Filament/User/Pages'), for: 'App\\Filament\\User\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                UserPages\Dashboard::class,
+                MyCars::class,
+                MyAppointments::class,
             ])
             ->discoverWidgets(in: app_path('Filament/User/Widgets'), for: 'App\\Filament\\User\\Widgets')
             ->widgets([
@@ -58,14 +62,12 @@ class UserPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                fn () => EnsureUserRole::class . ':user',
             ])
             ->authMiddleware([
                 Authenticate::class,
+                'web',
             ])
-            ->databaseNotifications()
-            ->databaseNotificationsPolling('30s')
-            ->profile()
+            ->authGuard('web')
             ->passwordReset()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([

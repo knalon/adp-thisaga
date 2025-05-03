@@ -29,17 +29,19 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('email')
                     ->email()
                     ->required()
-                    ->maxLength(255)
-                    ->unique(ignoreRecord: true),
+                    ->maxLength(255),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->dehydrateStateUsing(fn ($state) => Hash::make($state))
-                    ->required(fn (string $context): bool => $context === 'create')
-                    ->maxLength(255),
-                Forms\Components\Select::make('roles')
-                    ->multiple()
-                    ->relationship('roles', 'name')
-                    ->preload(),
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->required(fn (string $context): bool => $context === 'create'),
+                Forms\Components\Select::make('role')
+                    ->options([
+                        'admin' => 'Administrator',
+                        'user' => 'User',
+                    ])
+                    ->required()
+                    ->default('user'),
             ]);
     }
 
@@ -51,19 +53,20 @@ class UserResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('email')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('roles.name')
-                    ->badge(),
+                Tables\Columns\BadgeColumn::make('role')
+                    ->colors([
+                        'danger' => 'admin',
+                        'success' => 'user',
+                    ]),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->dateTime(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('role')
+                    ->options([
+                        'admin' => 'Administrator',
+                        'user' => 'User',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

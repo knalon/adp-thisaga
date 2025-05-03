@@ -33,7 +33,12 @@ Route::get('/admin', function () {
 // Redirect /user to user dashboard
 Route::get('/user', function () {
     return redirect()->route('filament.user.pages.dashboard');
-})->name('dashboard');
+})->middleware(['auth', 'web'])->name('dashboard');
+
+// Add a direct dashboard route
+Route::get('/dashboard', function () {
+    return redirect()->route('filament.user.pages.dashboard');
+})->middleware(['auth', 'web'])->name('dashboard.redirect');
 
 // Authentication routes
 Route::middleware('guest')->group(function () {

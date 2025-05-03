@@ -10,16 +10,8 @@ class EnsureUserRole
 {
     public function handle(Request $request, Closure $next, string $role): Response
     {
-        if (! $request->user() || ! $request->user()->hasRole($role)) {
-            if ($request->user() && $request->user()->hasRole('admin')) {
-                return redirect('/admin');
-            }
-
-            if ($request->user() && $request->user()->hasRole('user')) {
-                return redirect('/user');
-            }
-
-            return redirect('/login');
+        if (!$request->user() || !$request->user()->hasRole($role)) {
+            abort(403, 'You do not have permission to access this area.');
         }
 
         return $next($request);

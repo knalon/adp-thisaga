@@ -2,8 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\Dashboard;
-use App\Models\User;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -19,8 +17,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Enums\RolesEnum;
-use App\Http\Middleware\EnsureUserRole;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -66,8 +62,6 @@ class AdminPanelProvider extends PanelProvider
             ->registration(false)
             ->passwordReset()
             ->profile()
-            ->databaseNotifications()
-            ->databaseNotificationsPolling('30s')
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([

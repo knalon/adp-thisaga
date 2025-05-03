@@ -5,6 +5,9 @@ import { Appointment, Car, PageProps } from '@/types';
 import { Dialog, Transition } from '@headlessui/react';
 import CarouselComponent from '@/Components/CarouselComponent';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import BidAndAppointment from '@/Components/BidAndAppointment';
+import { Card } from '@/Components/ui/card';
+import { Carousel } from '@/Components/ui/carousel';
 
 interface Props extends Record<string, unknown> {
   car: Car;
@@ -141,175 +144,53 @@ export default function Show({ car, carImages, auth, currentBid, userAppointment
             </ol>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Car Images */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <div className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
-                <img
-                  src={activeImage}
-                  alt={`${car.make} ${car.model}`}
-                  className="w-full h-96 object-cover"
-                />
-              </div>
-
-              {carImages.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
+              <Card className="overflow-hidden">
+                <Carousel>
                   {carImages.map((image, index) => (
-                    <div
+                    <img
                       key={index}
-                      className={`border-2 rounded cursor-pointer ${activeImage === image ? 'border-primary' : 'border-gray-200'}`}
-                      onClick={() => setActiveImage(image)}
-                    >
-                      <img
-                        src={image}
-                        alt={`${car.make} ${car.model} - view ${index + 1}`}
-                        className="w-full h-20 object-cover"
-                      />
-                    </div>
+                      src={image}
+                      alt={`${car.make} ${car.model} - Image ${index + 1}`}
+                      className="w-full h-96 object-cover"
+                    />
                   ))}
+                </Carousel>
+              </Card>
+
+              <Card className="mt-8 p-6">
+                <h1 className="text-3xl font-bold">{car.make} {car.model} ({car.registration_year})</h1>
+                <div className="mt-4 space-y-2">
+                  <p>
+                    <span className="font-semibold">Brand:</span> {car.make}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Model:</span> {car.model}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Year:</span> {car.registration_year}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Price:</span> ${car.price.toLocaleString()}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Seller:</span> {car.user?.name}
+                  </p>
                 </div>
-              )}
-            </div>
-
-            {/* Car Details */}
-            <div>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <h1 className="text-3xl font-bold text-gray-900">
-                  {car.make} {car.model} ({car.registration_year})
-                </h1>
-
-                <div className="flex items-center mt-2">
-                  <span className="text-2xl font-bold text-primary">${car.price.toLocaleString()}</span>
-
-                  {currentBid && (
-                    <span className="ml-4 px-3 py-1 bg-secondary text-white rounded-full text-sm">
-                      Current Highest Bid: ${currentBid.toLocaleString()}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-2 mt-4">
-                  {car.color && (
-                    <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm">
-                      Color: {car.color}
-                    </span>
-                  )}
-                  {car.mileage && (
-                    <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm">
-                      Mileage: {car.mileage}
-                    </span>
-                  )}
-                  {car.transmission && (
-                    <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm">
-                      Transmission: {car.transmission}
-                    </span>
-                  )}
-                  {car.fuel_type && (
-                    <span className="px-3 py-1 rounded-full bg-gray-100 text-gray-800 text-sm">
-                      Fuel Type: {car.fuel_type}
-                    </span>
-                  )}
-                </div>
-
                 <div className="mt-6">
                   <h2 className="text-xl font-semibold mb-2">Description</h2>
-                  <p className="text-gray-700 whitespace-pre-line">{car.description}</p>
+                  <p className="whitespace-pre-wrap">{car.description}</p>
                 </div>
+              </Card>
+            </div>
 
-                <div className="mt-6">
-                  <h2 className="text-xl font-semibold mb-2">Seller Information</h2>
-                  <p className="text-gray-700">Seller: {car.user?.name}</p>
-                  <p className="text-gray-700">Listed on: {formatDate(car.created_at)}</p>
-                </div>
-
-                {/* User Appointment Status */}
-                {isLoggedIn && !isOwner && userAppointment && (
-                  <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                    <h2 className="text-lg font-semibold mb-2">Your Test Drive Appointment</h2>
-                    <p className="text-gray-700">Date: {formatDateTime(userAppointment.appointment_date)}</p>
-                    <p className="text-gray-700">Status:
-                      <span className={`ml-2 px-2 py-0.5 rounded text-white ${
-                        userAppointment.status === 'approved' ? 'bg-green-500' :
-                        userAppointment.status === 'rejected' ? 'bg-red-500' :
-                        userAppointment.status === 'completed' ? 'bg-blue-500' : 'bg-yellow-500'
-                      }`}>
-                        {userAppointment.status.charAt(0).toUpperCase() + userAppointment.status.slice(1)}
-                      </span>
-                    </p>
-                    {userAppointment.bid_price && (
-                      <p className="text-gray-700 mt-2">Your Bid: ${userAppointment.bid_price.toLocaleString()}</p>
-                    )}
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                  {isOwner ? (
-                    <>
-                      <Link
-                        href={`/cars/${car.id}/edit`}
-                        className="btn btn-primary flex-1"
-                      >
-                        Edit Listing
-                      </Link>
-                      <button
-                        className="btn btn-outline btn-error flex-1"
-                        onClick={() => {
-                          if (confirm('Are you sure you want to deactivate this listing?')) {
-                            router.patch(`/cars/${car.id}/deactivate`);
-                          }
-                        }}
-                      >
-                        Deactivate Listing
-                      </button>
-                    </>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                      <button
-                        className="btn btn-primary"
-                        onClick={handleScheduleAppointment}
-                        disabled={isOwner || (userAppointment !== null)}
-                      >
-                        {userAppointment ? 'Test Drive Scheduled' : 'Schedule Test Drive'}
-                      </button>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={handleOpenBidModal}
-                        disabled={isOwner || !userAppointment || userAppointment.status !== 'approved'}
-                      >
-                        Submit Bid
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Bid History Section */}
-                {bidHistory && bidHistory.length > 0 && (
-                  <div className="mt-8">
-                    <h2 className="text-xl font-semibold mb-4">Bid History</h2>
-                    <div className="overflow-x-auto">
-                      <table className="table w-full">
-                        <thead>
-                          <tr>
-                            <th>Bidder</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {bidHistory.map((bid) => (
-                            <tr key={bid.id}>
-                              <td>{bid.user_name}</td>
-                              <td>${bid.amount.toLocaleString()}</td>
-                              <td>{formatDateTime(bid.created_at)}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div>
+              <BidAndAppointment
+                carId={car.id}
+                currentUserId={auth.user?.id}
+                carOwnerId={car.user_id}
+              />
             </div>
           </div>
         </div>

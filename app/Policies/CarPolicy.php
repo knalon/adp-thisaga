@@ -34,4 +34,14 @@ class CarPolicy
     {
         return $user->id === $car->user_id;
     }
+
+    public function restore(User $user, Car $car): bool
+    {
+        return $user->id === $car->user_id;
+    }
+
+    public function forceDelete(User $user, Car $car): bool
+    {
+        return $user->id === $car->user_id;
+    }
 }

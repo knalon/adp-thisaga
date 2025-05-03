@@ -24,7 +24,10 @@ class CarResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('make')
+                Forms\Components\TextInput::make('title')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\TextInput::make('brand')
                     ->required()
                     ->maxLength(255),
                 Forms\Components\TextInput::make('model')
@@ -32,44 +35,24 @@ class CarResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('year')
                     ->required()
-                    ->numeric()
-                    ->minValue(1900)
-                    ->maxValue(date('Y') + 1),
+                    ->numeric(),
                 Forms\Components\TextInput::make('price')
                     ->required()
                     ->numeric()
                     ->prefix('$'),
-                Forms\Components\TextInput::make('mileage')
-                    ->required()
-                    ->numeric()
-                    ->suffix('miles'),
-                Forms\Components\Select::make('transmission')
-                    ->options([
-                        'automatic' => 'Automatic',
-                        'manual' => 'Manual',
-                    ])
-                    ->required(),
-                Forms\Components\Select::make('fuel_type')
-                    ->options([
-                        'petrol' => 'Petrol',
-                        'diesel' => 'Diesel',
-                        'electric' => 'Electric',
-                        'hybrid' => 'Hybrid',
-                    ])
-                    ->required(),
                 Forms\Components\Textarea::make('description')
                     ->required()
-                    ->maxLength(1000),
+                    ->maxLength(65535),
                 Forms\Components\FileUpload::make('images')
                     ->multiple()
                     ->image()
-                    ->maxFiles(5)
-                    ->directory('cars'),
-                Forms\Components\Toggle::make('is_featured')
-                    ->label('Featured Car'),
-                Forms\Components\Toggle::make('is_available')
-                    ->label('Available for Sale')
+                    ->directory('car-images'),
+                Forms\Components\Toggle::make('is_active')
+                    ->label('Active Listing')
                     ->default(true),
+                Forms\Components\Select::make('user_id')
+                    ->relationship('user', 'name')
+                    ->required(),
             ]);
     }
 
@@ -77,52 +60,44 @@ class CarResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('make')
+                Tables\Columns\TextColumn::make('title')
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('brand')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('model')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('year')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('year'),
                 Tables\Columns\TextColumn::make('price')
-                    ->money('USD')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('mileage')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('transmission')
-                    ->searchable(),
-                Tables\Columns\IconColumn::make('is_featured')
+                    ->money('USD'),
+                Tables\Columns\IconColumn::make('is_active')
                     ->boolean(),
-                Tables\Columns\IconColumn::make('is_available')
-                    ->boolean(),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Owner'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->dateTime(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('transmission')
+                Tables\Filters\SelectFilter::make('status')
                     ->options([
-                        'automatic' => 'Automatic',
-                        'manual' => 'Manual',
-                    ]),
-                Tables\Filters\SelectFilter::make('fuel_type')
-                    ->options([
-                        'petrol' => 'Petrol',
-                        'diesel' => 'Diesel',
-                        'electric' => 'Electric',
-                        'hybrid' => 'Hybrid',
-                    ]),
-                Tables\Filters\TernaryFilter::make('is_featured'),
-                Tables\Filters\TernaryFilter::make('is_available'),
+                        'active' => 'Active',
+                        'inactive' => 'Inactive',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'],
+                            fn (Builder $query, $value): Builder => $query->where('is_active', $value === 'active'),
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('toggleStatus')
+                    ->label(fn (Car $record): string => $record->is_active ? 'Deactivate' : 'Activate')
+                    ->icon(fn (Car $record): string => $record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
+                    ->color(fn (Car $record): string => $record->is_active ? 'danger' : 'success')
+                    ->action(function (Car $record): void {
+                        $record->update(['is_active' => !$record->is_active]);
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

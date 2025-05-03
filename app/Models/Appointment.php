@@ -26,6 +26,7 @@ class Appointment extends Model
         'status',
         'is_test_drive',
         'is_purchase_appointment',
+        'bid_amount',
     ];
 
     /**
@@ -38,6 +39,7 @@ class Appointment extends Model
         'is_test_drive' => 'boolean',
         'is_purchase_appointment' => 'boolean',
         'status' => AppointmentStatus::class,
+        'bid_amount' => 'decimal:2',
     ];
 
     /**

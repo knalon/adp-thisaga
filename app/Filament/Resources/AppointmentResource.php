@@ -23,25 +23,31 @@ class AppointmentResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('car_id')
+                    ->relationship('car', 'title')
+                    ->required(),
                 Forms\Components\Select::make('user_id')
                     ->relationship('user', 'name')
-                    ->required(),
-                Forms\Components\Select::make('car_id')
-                    ->relationship('car', 'make')
                     ->required(),
                 Forms\Components\DateTimePicker::make('appointment_date')
                     ->required()
                     ->minDate(now()),
+                Forms\Components\TextInput::make('bid_amount')
+                    ->required()
+                    ->numeric()
+                    ->prefix('$'),
                 Forms\Components\Select::make('status')
                     ->options([
                         'pending' => 'Pending',
-                        'confirmed' => 'Confirmed',
-                        'cancelled' => 'Cancelled',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
                         'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
                     ])
-                    ->required(),
+                    ->required()
+                    ->default('pending'),
                 Forms\Components\Textarea::make('notes')
-                    ->maxLength(500),
+                    ->maxLength(65535),
             ]);
     }
 
@@ -49,55 +55,51 @@ class AppointmentResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('car.title')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('user.name')
-                    ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('car.make')
-                    ->searchable()
-                    ->sortable(),
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('appointment_date')
                     ->dateTime()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('bid_amount')
+                    ->money('USD')
                     ->sortable(),
                 Tables\Columns\BadgeColumn::make('status')
                     ->colors([
                         'warning' => 'pending',
-                        'success' => 'confirmed',
-                        'danger' => 'cancelled',
+                        'success' => 'approved',
+                        'danger' => 'rejected',
                         'primary' => 'completed',
+                        'secondary' => 'cancelled',
                     ]),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->dateTime(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'pending' => 'Pending',
-                        'confirmed' => 'Confirmed',
-                        'cancelled' => 'Cancelled',
+                        'approved' => 'Approved',
+                        'rejected' => 'Rejected',
                         'completed' => 'Completed',
+                        'cancelled' => 'Cancelled',
                     ]),
-                Tables\Filters\Filter::make('appointment_date')
-                    ->form([
-                        Forms\Components\DatePicker::make('from'),
-                        Forms\Components\DatePicker::make('until'),
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when(
-                                $data['from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('appointment_date', '>=', $date),
-                            )
-                            ->when(
-                                $data['until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('appointment_date', '<=', $date),
-                            );
-                    }),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\Action::make('approve')
+                    ->requiresConfirmation()
+                    ->action(fn (Appointment $record) => $record->update(['status' => 'approved']))
+                    ->visible(fn (Appointment $record) => $record->status === 'pending'),
+                Tables\Actions\Action::make('reject')
+                    ->requiresConfirmation()
+                    ->action(fn (Appointment $record) => $record->update(['status' => 'rejected']))
+                    ->visible(fn (Appointment $record) => $record->status === 'pending'),
+                Tables\Actions\Action::make('complete')
+                    ->requiresConfirmation()
+                    ->action(fn (Appointment $record) => $record->update(['status' => 'completed']))
+                    ->visible(fn (Appointment $record) => $record->status === 'approved'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

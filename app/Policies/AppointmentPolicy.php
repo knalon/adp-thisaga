@@ -17,7 +17,7 @@ class AppointmentPolicy
 
     public function view(User $user, Appointment $appointment): bool
     {
-        return $user->id === $appointment->user_id;
+        return $user->id === $appointment->user_id || $user->id === $appointment->car->user_id;
     }
 
     public function create(User $user): bool
@@ -27,11 +27,21 @@ class AppointmentPolicy
 
     public function update(User $user, Appointment $appointment): bool
     {
-        return $user->id === $appointment->user_id && $appointment->status === 'pending';
+        return $user->id === $appointment->user_id || $user->id === $appointment->car->user_id;
     }
 
     public function delete(User $user, Appointment $appointment): bool
     {
-        return $user->id === $appointment->user_id && $appointment->status === 'pending';
+        return $user->id === $appointment->user_id || $user->id === $appointment->car->user_id;
+    }
+
+    public function restore(User $user, Appointment $appointment): bool
+    {
+        return $user->id === $appointment->user_id || $user->id === $appointment->car->user_id;
+    }
+
+    public function forceDelete(User $user, Appointment $appointment): bool
+    {
+        return $user->id === $appointment->user_id || $user->id === $appointment->car->user_id;
     }
 }
