@@ -21,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { auth } = usePage<PageProps>().props;
   const userIsBanned = auth.isBanned;
 
-  const isAdmin = auth.user?.roles?.some(role => role.name === 'admin') ?? false;
+  const isAdmin = auth?.user?.roles?.some(role => role.name === 'admin') ?? false;
 
   // Navigation for all users (authenticated and unauthenticated)
   const publicNavigation: NavigationItem[] = [

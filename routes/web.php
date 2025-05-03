@@ -3,6 +3,7 @@
 use Inertia\Inertia;
 use App\Enums\RolesEnum;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Application;
 use App\Http\Controllers\CarController;
 use App\Http\Controllers\HomeController;
@@ -16,41 +17,48 @@ use App\Http\Controllers\Auth\EmailVerificationPromptController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
+use App\Http\Controllers\AboutController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\UserDashboardController;
+use App\Http\Controllers\AdminDashboardController;
 
-// Guest Routes
+// Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/about', [HomeController::class, 'about'])->name('about');
-Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+Route::get('/about', [AboutController::class, 'index'])->name('about');
+Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [HomeController::class, 'submitContact'])->name('contact.submit');
 Route::get('/cars', [CarController::class, 'index'])->name('cars.index');
-Route::get('/cars/{car:slug}', [CarController::class, 'show'])->name('cars.show');
-
-// Redirect /admin to admin dashboard
-Route::get('/admin', function () {
-    return redirect()->route('filament.admin.pages.dashboard');
-})->name('admin.dashboard');
-
-// Redirect /user to user dashboard
-Route::get('/user', function () {
-    return redirect()->route('filament.user.pages.dashboard');
-})->middleware(['auth', 'web'])->name('dashboard');
-
-// Add a direct dashboard route
-Route::get('/dashboard', function () {
-    return redirect()->route('filament.user.pages.dashboard');
-})->middleware(['auth', 'web'])->name('dashboard.redirect');
+Route::get('/cars/{car}', [CarController::class, 'show'])->name('cars.show');
 
 // Authentication routes
 Route::middleware('guest')->group(function () {
-    Route::get('register', [RegisteredUserController::class, 'create'])
-        ->name('register');
+    Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
+    Route::post('/register', [RegisteredUserController::class, 'store']);
+    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticatedSessionController::class, 'store']);
+});
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+// Authenticated user routes
+Route::middleware(['auth', 'role:user'])->group(function () {
+    Route::get('/dashboard', [UserDashboardController::class, 'index'])->name('user.dashboard');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('login', [AuthenticatedSessionController::class, 'create'])
-        ->name('login');
+    // Payment routes
+    Route::get('/payment/{transaction}', [PaymentController::class, 'process'])->name('payment.process');
+    Route::post('/payment/{transaction}/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::get('/payment/{transaction}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+});
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
+// Admin routes
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('admin.profile.destroy');
 });
 
 Route::middleware('auth')->group(function () {
@@ -72,14 +80,4 @@ Route::middleware('auth')->group(function () {
 
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
-
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
-    // Payment routes
-    Route::get('/payment/{transaction}', [PaymentController::class, 'process'])->name('payment.process');
-    Route::post('/payment/{transaction}/success', [PaymentController::class, 'success'])->name('payment.success');
-    Route::get('/payment/{transaction}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 });

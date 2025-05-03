@@ -2,8 +2,7 @@
 
 namespace App\Providers\Filament;
 
-use App\Filament\Pages\MyAppointments;
-use App\Filament\Pages\MyCars;
+use App\Enums\RolesEnum;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
@@ -19,11 +18,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use App\Http\Middleware\EnsureUserRole;
-use App\Filament\User\Widgets\MyCarsOverview;
-use App\Filament\User\Widgets\MyBidsOverview;
-use App\Filament\User\Widgets\MyAppointmentsOverview;
-use App\Filament\User\Pages as UserPages;
+use Illuminate\Support\Facades\Auth;
 
 class UserPanelProvider extends PanelProvider
 {
@@ -31,7 +26,7 @@ class UserPanelProvider extends PanelProvider
     {
         return $panel
             ->id('user')
-            ->path('user/dashboard')
+            ->path('user')
             ->login()
             ->colors([
                 'primary' => Color::Blue,
@@ -41,15 +36,10 @@ class UserPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/User/Resources'), for: 'App\\Filament\\User\\Resources')
             ->discoverPages(in: app_path('Filament/User/Pages'), for: 'App\\Filament\\User\\Pages')
             ->pages([
-                UserPages\Dashboard::class,
-                MyCars::class,
-                MyAppointments::class,
+                Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/User/Widgets'), for: 'App\\Filament\\User\\Widgets')
             ->widgets([
-                MyCarsOverview::class,
-                MyBidsOverview::class,
-                MyAppointmentsOverview::class,
                 Widgets\AccountWidget::class,
             ])
             ->middleware([
@@ -65,12 +55,13 @@ class UserPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                'web',
+                'ensure.role:user',
             ])
             ->authGuard('web')
             ->passwordReset()
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->navigationGroups([
+                'Dashboard',
                 'My Cars',
                 'Bids & Appointments',
                 'Transactions',
