@@ -32,7 +32,6 @@ class User extends Authenticatable implements FilamentUser
         'profile_picture',
         'is_admin',
         'is_active',
-        'role',
     ];
 
     /**
@@ -159,10 +158,5 @@ class User extends Authenticatable implements FilamentUser
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
-    }
-
-    public function hasRole(string $role): bool
-    {
-        return $this->role === $role;
     }
 }

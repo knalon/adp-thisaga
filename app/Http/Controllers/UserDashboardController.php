@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class UserDashboardController extends Controller
 {
-    public function index(): View
+    public function index(): RedirectResponse
     {
-        return view('user.dashboard');
+        return redirect()->route('filament.user.pages.dashboard');
     }
 }
