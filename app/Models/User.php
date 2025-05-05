@@ -50,11 +50,25 @@ class User extends Authenticatable implements FilamentUser
      * @var array<string, string>
      */
     protected $casts = [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
         'is_admin' => 'boolean',
-            'is_active' => 'boolean',
-        ];
+        'is_active' => 'boolean',
+    ];
+
+    /**
+     * The "booted" method of the model.
+     */
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            if (!$user->is_admin) {
+                $user->assignRole('user');
+            } else {
+                $user->assignRole('admin');
+            }
+        });
+    }
 
     /**
      * Ban this user and send ban notification

@@ -14,25 +14,29 @@ class UsersSeeder extends Seeder
     public function run(): void
     {
         // Create admin user
-        $admin = User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'is_admin' => true,
-            'email_verified_at' => now(),
-        ]);
+        $admin = User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+                'is_admin' => true,
+                'email_verified_at' => now(),
+            ]
+        );
         $admin->assignRole('admin');
 
         // Create regular user
-        $user = User::create([
-            'name' => 'Test User',
-            'email' => 'user@example.com',
-            'password' => Hash::make('password'),
-            'phone_number' => '1234567890',
-            'address' => '123 Test Street, Test City',
-            'is_admin' => false,
-            'email_verified_at' => now(),
-        ]);
+        $user = User::updateOrCreate(
+            ['email' => 'user@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => Hash::make('password'),
+                'phone_number' => '1234567890',
+                'address' => '123 Test Street, Test City',
+                'is_admin' => false,
+                'email_verified_at' => now(),
+            ]
+        );
         $user->assignRole('user');
 
         // Create more users if in local environment
@@ -42,4 +46,4 @@ class UsersSeeder extends Seeder
             });
         }
     }
-} 
+}
