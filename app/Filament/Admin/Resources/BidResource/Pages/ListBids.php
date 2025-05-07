@@ -8,4 +8,4 @@ use Filament\Resources\Pages\ListRecords;
 class ListBids extends ListRecords
 {
     protected static string $resource = BidResource::class;
-} 
+}

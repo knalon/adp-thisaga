@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
+use Inertia\Inertia;
 
 class ContactController extends Controller
 {
-    public function index(): View
+    /**
+     * Display the contact page.
+     *
+     * @return \Inertia\Response
+     */
+    public function index()
     {
-        return view('contact');
+        return Inertia::render('Contact');
     }
 }

@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
+use Inertia\Inertia;
 
 class AboutController extends Controller
 {
-    public function index(): View
+    /**
+     * Display the about page.
+     *
+     * @return \Inertia\Response
+     */
+    public function index()
     {
-        return view('about');
+        return Inertia::render('About');
     }
 }
