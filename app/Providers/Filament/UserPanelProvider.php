@@ -55,7 +55,7 @@ class UserPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                'ensure.role:user',
+                'role:user',
             ])
             ->authGuard('web')
             ->passwordReset()

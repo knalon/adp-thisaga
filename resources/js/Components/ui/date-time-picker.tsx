@@ -1,7 +1,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-interface DateTimePickerProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface DateTimePickerProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   value: string
   onChange: (value: string) => void
   minDate?: Date

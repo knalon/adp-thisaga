@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 use App\Models\User;
 
 class RoleSeeder extends Seeder
@@ -13,9 +14,46 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create roles if they don't exist
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $userRole = Role::firstOrCreate(['name' => 'user']);
+        // Create roles
+        $adminRole = Role::create(['name' => 'admin']);
+        $userRole = Role::create(['name' => 'user']);
+
+        // Create permissions
+        $permissions = [
+            'view_cars',
+            'create_cars',
+            'edit_cars',
+            'delete_cars',
+            'view_bids',
+            'create_bids',
+            'edit_bids',
+            'delete_bids',
+            'view_appointments',
+            'create_appointments',
+            'edit_appointments',
+            'delete_appointments',
+            'view_transactions',
+            'create_transactions',
+            'edit_transactions',
+            'delete_transactions',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
+
+        // Assign all permissions to admin role
+        $adminRole->givePermissionTo($permissions);
+
+        // Assign basic permissions to user role
+        $userRole->givePermissionTo([
+            'view_cars',
+            'create_bids',
+            'view_bids',
+            'create_appointments',
+            'view_appointments',
+            'view_transactions',
+        ]);
 
         // Assign admin role to admin users
         $adminUsers = User::where('is_admin', true)->get();

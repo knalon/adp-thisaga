@@ -57,13 +57,14 @@ class BidResource extends Resource
                 Tables\Columns\TextColumn::make('amount')
                     ->money('USD')
                     ->sortable(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'accepted',
-                        'danger' => 'rejected',
-                        'secondary' => 'expired',
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'accepted' => 'success',
+                        'rejected' => 'danger',
+                        'expired' => 'secondary',
+                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -133,4 +134,4 @@ class BidResource extends Resource
             'edit' => Pages\EditBid::route('/{record}/edit'),
         ];
     }
-} 
+}

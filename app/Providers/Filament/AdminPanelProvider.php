@@ -58,7 +58,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                'ensure.role:admin',
+                'role:admin',
             ])
             ->authGuard('web')
             ->registration(false)

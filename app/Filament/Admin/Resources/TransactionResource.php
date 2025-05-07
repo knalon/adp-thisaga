@@ -62,13 +62,14 @@ class TransactionResource extends Resource
                 Tables\Columns\TextColumn::make('amount')
                     ->money('USD')
                     ->sortable(),
-                Tables\Columns\BadgeColumn::make('status')
-                    ->colors([
-                        'warning' => 'pending',
-                        'success' => 'completed',
-                        'danger' => 'cancelled',
-                        'secondary' => 'refunded',
-                    ]),
+                Tables\Columns\TextColumn::make('status')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        'refunded' => 'secondary',
+                    }),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable(),
@@ -133,4 +134,3 @@ class TransactionResource extends Resource
         ];
     }
 }
- 

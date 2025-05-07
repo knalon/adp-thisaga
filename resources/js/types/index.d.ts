@@ -5,7 +5,10 @@ export interface User {
     name: string;
     email: string;
     email_verified_at: string;
-    roles: Role[];
+    created_at: string;
+    updated_at: string;
+    roles?: { name: string }[];
+    isBanned?: boolean;
     stripe_account_active: boolean;
 }
 
@@ -86,6 +89,12 @@ export interface Transaction {
   user?: User;
   car?: Car;
   appointment?: Appointment;
+}
+
+export interface Image {
+  id: number;
+  thumb: string;
+  large: string;
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = {

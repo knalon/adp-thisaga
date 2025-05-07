@@ -1,3 +1,11 @@
+export interface CarImage {
+    id: number;
+    car_id: number;
+    image_path: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Car {
     id: number;
     user_id: number;
@@ -24,6 +32,13 @@ export interface User {
     name: string;
     email: string;
     role: 'user' | 'admin';
+    phone?: string;
+    address?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    country?: string;
+    profile_photo_url?: string;
     created_at: string;
     updated_at: string;
 }

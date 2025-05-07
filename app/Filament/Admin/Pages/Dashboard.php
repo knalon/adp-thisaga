@@ -10,7 +10,7 @@ use Filament\Navigation\NavigationGroup;
 use App\Models\Appointment;
 use App\Models\Car;
 use App\Models\User;
-use Filament\Widgets\StatsOverviewWidget\Card;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseStatsOverview;
 use Illuminate\Support\Facades\Auth;
 use Filament\Pages\Dashboard as BaseDashboard;
@@ -134,18 +134,18 @@ class Dashboard extends BaseDashboard
 
 class AdminStatsOverview extends BaseStatsOverview
 {
-    protected function getCards(): array
+    protected function getStats(): array
     {
         return [
-            Card::make('Total Users', User::count())
+            Stat::make('Total Users', User::count())
                 ->description('Total number of registered users')
                 ->descriptionIcon('heroicon-m-users')
                 ->color('primary'),
-            Card::make('Total Cars', Car::count())
+            Stat::make('Total Cars', Car::count())
                 ->description('Total number of car listings')
                 ->descriptionIcon('heroicon-m-truck')
                 ->color('success'),
-            Card::make('Pending Appointments', Appointment::where('status', 'pending')->count())
+            Stat::make('Pending Appointments', Appointment::where('status', 'pending')->count())
                 ->description('Appointments waiting for approval')
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('warning'),
@@ -155,20 +155,20 @@ class AdminStatsOverview extends BaseStatsOverview
 
 class UserStatsOverview extends BaseStatsOverview
 {
-    protected function getCards(): array
+    protected function getStats(): array
     {
         $userId = Auth::id();
 
         return [
-            Card::make('My Cars', Car::where('user_id', $userId)->count())
+            Stat::make('My Cars', Car::where('user_id', $userId)->count())
                 ->description('Your active car listings')
                 ->descriptionIcon('heroicon-m-truck')
                 ->color('primary'),
-            Card::make('My Appointments', Appointment::where('user_id', $userId)->count())
+            Stat::make('My Appointments', Appointment::where('user_id', $userId)->count())
                 ->description('Your test drive appointments')
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('success'),
-            Card::make('Pending Bids', Appointment::where('user_id', $userId)->where('status', 'pending')->count())
+            Stat::make('Pending Bids', Appointment::where('user_id', $userId)->where('status', 'pending')->count())
                 ->description('Your pending bids')
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('warning'),
