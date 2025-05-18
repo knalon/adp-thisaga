@@ -7,8 +7,9 @@ use App\Filament\User\Widgets\UserStatsOverview;
 use App\Filament\User\Widgets\RecentActivity;
 use Filament\Navigation\NavigationItem;
 use Filament\Navigation\NavigationGroup;
+use Filament\Pages\Dashboard as BaseDashboard;
 
-class Dashboard extends Page
+class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
     protected static ?string $navigationLabel = 'Overview';
@@ -16,7 +17,7 @@ class Dashboard extends Page
 
     protected static string $view = 'filament.user.pages.dashboard';
 
-    protected function getHeaderWidgets(): array
+    public function getWidgets(): array
     {
         return [
             UserStatsOverview::class,
