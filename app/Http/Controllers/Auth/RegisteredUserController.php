@@ -13,6 +13,9 @@ use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Support\Facades\Log;
+
+set_time_limit(120); // Set to 120 seconds
 
 class RegisteredUserController extends Controller
 {
@@ -31,37 +34,41 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'phone' => 'nullable|string|max:20',
-            'address' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'state' => 'nullable|string|max:100',
-            'postal_code' => 'nullable|string|max:20',
-            'country' => 'nullable|string|max:100',
-        ]);
+        try {
+            Log::info("validating User Registration");
+            $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class],
+                'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'phone' => 'nullable|string|max:20',
+                'address' => 'nullable|string|max:255',
+                'city' => 'nullable|string|max:100',
+                'state' => 'nullable|string|max:100',
+                'postal_code' => 'nullable|string|max:20',
+                'country' => 'nullable|string|max:100',
+            ]);
+            Log::info("Validation passed");
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error("Validation failed:", $e->errors());
+            throw $e; // Optional: re-throw if you want normal error behavior
+        }
 
+        Log::info("User creation");
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'is_admin' => false,
-            'phone' => $request->phone,
+            'phone_number' => $request->phone,
             'address' => $request->address,
-            'city' => $request->city,
-            'state' => $request->state,
-            'postal_code' => $request->postal_code,
-            'country' => $request->country,
+            'profile_picture' => 'sample'
         ]);
 
+        Log::info($user);
         // Role will be automatically assigned via the User model's booted method
 
         event(new Registered($user));
-
         Auth::login($user);
 
         return redirect(RouteServiceProvider::HOME);
-    }
-}
+    }}

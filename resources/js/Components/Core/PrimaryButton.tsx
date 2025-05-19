@@ -1,20 +1,24 @@
-import { ButtonHTMLAttributes } from 'react';
+import { ButtonHTMLAttributes } from "react";
+
+interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  type?: "button" | "submit" | "reset";
+}
 
 export default function PrimaryButton({
-    className = '',
-    disabled,
-    children,
-    ...props
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
-    return (
-        <button
-            {...props}
-            className={
-                `btn btn-primary ` + className
-            }
-            disabled={disabled}
-        >
-            {children}
-        </button>
-    );
+  className = "",
+  disabled,
+  children,
+  type = "submit", // ✅ default to submit
+  ...props
+}: PrimaryButtonProps) {
+  return (
+    <button
+      {...props}
+      type={type}
+      className={`btn btn-primary ${className}`}
+      disabled={disabled}
+    >
+      {children}
+    </button>
+  );
 }

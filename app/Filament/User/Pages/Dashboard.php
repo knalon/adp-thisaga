@@ -14,7 +14,6 @@ class Dashboard extends BaseDashboard
     protected static ?string $navigationIcon = 'heroicon-o-home';
     protected static ?string $navigationLabel = 'Overview';
     protected static ?int $navigationSort = -2;
-
     protected static string $view = 'filament.user.pages.dashboard';
 
     public function getWidgets(): array
@@ -48,20 +47,20 @@ class Dashboard extends BaseDashboard
                 ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.bids.*'))
                 ->url(route('filament.user.resources.bids.index')),
 
-            NavigationItem::make('My Sold Cars')
-                ->icon('heroicon-o-check-circle')
-                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.sold-cars.*'))
-                ->url(route('filament.user.resources.sold-cars.index')),
+            // NavigationItem::make('My Sold Cars')
+            //     ->icon('heroicon-o-check-circle')
+            //     ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.sold-cars.*'))
+            //     ->url(route('filament.user.resources.sold-cars.index')),
 
-            NavigationItem::make('My Purchased Cars')
-                ->icon('heroicon-o-shopping-cart')
-                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.purchased-cars.*'))
-                ->url(route('filament.user.resources.purchased-cars.index')),
+            // NavigationItem::make('My Purchased Cars')
+            //     ->icon('heroicon-o-shopping-cart')
+            //     ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.resources.purchased-cars.*'))
+            //     ->url(route('filament.user.resources.purchased-cars.index')),
 
-            NavigationItem::make('Settings')
-                ->icon('heroicon-o-cog')
-                ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.pages.settings'))
-                ->url(route('filament.user.pages.settings')),
+            // NavigationItem::make('Settings')
+            //     ->icon('heroicon-o-cog')
+            //     ->isActiveWhen(fn (): bool => request()->routeIs('filament.user.pages.settings'))
+            //     ->url(route('filament.user.pages.settings')),
         ];
     }
 

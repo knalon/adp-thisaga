@@ -9,6 +9,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
 class Activity extends Model
 {
     use LogsActivity;
+    protected $table = 'activity_log'; // ✅ Add this line
 
     protected $fillable = [
         'log_name',

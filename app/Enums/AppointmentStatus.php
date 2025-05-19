@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum AppointmentStatus: string
 {
+    case PENDING = 'pending';
     case SCHEDULED = 'scheduled';
     case COMPLETED = 'completed';
     case CANCELLED = 'cancelled';
@@ -12,6 +13,7 @@ enum AppointmentStatus: string
     public function label(): string
     {
         return match($this) {
+            self::PENDING => 'Pending',
             self::SCHEDULED => 'Scheduled',
             self::COMPLETED => 'Completed',
             self::CANCELLED => 'Cancelled',
@@ -22,6 +24,7 @@ enum AppointmentStatus: string
     public function color(): string
     {
         return match($this) {
+            self::PENDING => 'primary',
             self::SCHEDULED => 'info',
             self::COMPLETED => 'success',
             self::CANCELLED => 'danger',
