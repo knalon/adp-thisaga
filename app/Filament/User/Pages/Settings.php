@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Admin\Pages;
+namespace App\Filament\User\Pages;
 
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -9,19 +9,17 @@ use Filament\Actions\Action;
 use Illuminate\Support\Facades\Hash;
 use Filament\Notifications\Notification;
 
-class Profile extends Page implements Forms\Contracts\HasForms
+class Settings extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static ?string $navigationIcon = 'heroicon-o-cog';
 
-    protected static string $view = 'filament.admin.pages.profile';
+    protected static string $view = 'filament.user.pages.settings';
 
-    protected static ?string $navigationLabel = 'Profile';
+    protected static ?string $navigationLabel = 'Settings';
 
-    protected static ?string $navigationGroup = 'Settings';
-
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 4;
 
     public ?array $data = [];
 
@@ -79,7 +77,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
         ]);
 
         Notification::make()
-            ->title('Profile updated successfully')
+            ->title('Settings saved successfully')
             ->success()
             ->send();
     }
@@ -92,4 +90,4 @@ class Profile extends Page implements Forms\Contracts\HasForms
                 ->action('save'),
         ];
     }
-}
+} 
