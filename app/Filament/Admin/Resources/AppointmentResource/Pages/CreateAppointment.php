@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\AppointmentResource\Pages;
+namespace App\Filament\Admin\Resources\AppointmentResource\Pages;
 
-use App\Filament\Resources\AppointmentResource;
+use App\Filament\Admin\Resources\AppointmentResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateAppointment extends CreateRecord

@@ -11,6 +11,7 @@
         "filament/spatie-laravel-media-library-plugin": "^3.3",
         "filament/spatie-laravel-settings-plugin": "^3.3",
         "filament/spatie-laravel-tags-plugin": "^3.3",
+        "filament/widgets": "*",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.0",

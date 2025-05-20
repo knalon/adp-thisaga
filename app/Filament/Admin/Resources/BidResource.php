@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Admin\Resources;
 
-use App\Filament\Resources\BidResource\Pages;
+use App\Filament\Admin\Resources\BidResource\Pages;
 use App\Models\Bid;
 use Filament\Forms;
 use Filament\Forms\Form;

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\CarResource\Pages;
+namespace App\Filament\Admin\Resources\CarResource\Pages;
 
-use App\Filament\Resources\CarResource;
+use App\Filament\Admin\Resources\CarResource;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreateCar extends CreateRecord

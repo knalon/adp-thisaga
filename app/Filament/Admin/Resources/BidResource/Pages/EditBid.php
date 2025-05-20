@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources\BidResource\Pages;
+namespace App\Filament\Admin\Resources\BidResource\Pages;
 
-use App\Filament\Resources\BidResource;
+use App\Filament\Admin\Resources\BidResource;
 use Filament\Resources\Pages\EditRecord;
 
 class EditBid extends EditRecord

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Admin\Resources;
 
-use App\Filament\Resources\TransactionResource\Pages;
+use App\Filament\Admin\Resources\TransactionResource\Pages;
 use App\Models\Transaction;
 use Filament\Forms;
 use Filament\Forms\Form;
