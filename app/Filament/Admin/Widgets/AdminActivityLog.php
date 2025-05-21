@@ -37,4 +37,4 @@ class AdminActivityLog extends BaseWidget
             ->defaultSort('created_at', 'desc')
             ->paginated(false);
     }
-} 
+}

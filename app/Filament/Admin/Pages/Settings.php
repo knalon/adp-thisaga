@@ -6,7 +6,6 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
-use Illuminate\Support\Facades\Hash;
 use Filament\Notifications\Notification;
 
 class Settings extends Page implements Forms\Contracts\HasForms
@@ -81,4 +80,4 @@ class Settings extends Page implements Forms\Contracts\HasForms
                 ->action('save'),
         ];
     }
-} 
+}

@@ -2,9 +2,6 @@
 
 namespace App\Filament\Admin\Pages;
 
-use Filament\Pages\Page;
-use App\Filament\Widgets\StatsOverview;
-use App\Filament\Widgets\AdminActivityLog;
 use Filament\Navigation\NavigationItem;
 use Filament\Navigation\NavigationGroup;
 use App\Models\Appointment;
