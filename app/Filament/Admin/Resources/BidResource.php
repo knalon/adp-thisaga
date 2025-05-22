@@ -132,6 +132,8 @@ class BidResource extends Resource
             'index' => Pages\ListBids::route('/'),
             'create' => Pages\CreateBid::route('/create'),
             'edit' => Pages\EditBid::route('/{record}/edit'),
+            'pending' => Pages\PendingBids::route('/pending'),
+            'approved' => Pages\ApprovedBids::route('/approved'),
         ];
     }
 }

@@ -119,6 +119,8 @@ class CarResource extends Resource
             'index' => Pages\ListCars::route('/'),
             'create' => Pages\CreateCar::route('/create'),
             'edit' => Pages\EditCar::route('/{record}/edit'),
+            'pending' => Pages\PendingCars::route('/pending'),
+            'active' => Pages\ActiveCars::route('/active'),
         ];
     }
 
