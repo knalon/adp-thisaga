@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Admin\Resources;
 
-use App\Filament\Resources\BidResource\Pages;
+use App\Filament\Admin\Resources\BidResource\Pages;
 use App\Models\Bid;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -132,6 +132,8 @@ class BidResource extends Resource
             'index' => Pages\ListBids::route('/'),
             'create' => Pages\CreateBid::route('/create'),
             'edit' => Pages\EditBid::route('/{record}/edit'),
+            'pending' => Pages\PendingBids::route('/pending'),
+            'approved' => Pages\ApprovedBids::route('/approved'),
         ];
     }
 }

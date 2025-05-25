@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Filament\Admin\Resources\CarResource\Pages;
+namespace App\Filament\Admin\Resources\RolesResource\Pages;
 
-use App\Filament\Admin\Resources\CarResource;
+use App\Filament\Admin\Resources\RolesResource;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
-class EditCar extends EditRecord
+class EditRole extends EditRecord
 {
-    protected static string $resource = CarResource::class;
+    protected static string $resource = RolesResource::class;
 
     protected function getHeaderActions(): array
     {
@@ -16,4 +16,4 @@ class EditCar extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
-}
+} 

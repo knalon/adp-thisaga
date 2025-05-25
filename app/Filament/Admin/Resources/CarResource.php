@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Admin\Resources;
 
-use App\Filament\Resources\CarResource\Pages;
+use App\Filament\Admin\Resources\CarResource\Pages;
 use App\Models\Car;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -119,6 +119,8 @@ class CarResource extends Resource
             'index' => Pages\ListCars::route('/'),
             'create' => Pages\CreateCar::route('/create'),
             'edit' => Pages\EditCar::route('/{record}/edit'),
+            'pending' => Pages\PendingCars::route('/pending'),
+            'active' => Pages\ActiveCars::route('/active'),
         ];
     }
 

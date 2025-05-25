@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\Resources;
+namespace App\Filament\Admin\Resources;
 
-use App\Filament\Resources\AppointmentResource\Pages;
+use App\Filament\Admin\Resources\AppointmentResource\Pages;
 use App\Models\Appointment;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -122,6 +122,8 @@ class AppointmentResource extends Resource
             'index' => Pages\ListAppointments::route('/'),
             'create' => Pages\CreateAppointment::route('/create'),
             'edit' => Pages\EditAppointment::route('/{record}/edit'),
+            'pending' => Pages\PendingAppointments::route('/pending'),
+            'approved' => Pages\ApprovedAppointments::route('/approved'),
         ];
     }
 }

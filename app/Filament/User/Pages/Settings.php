@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Admin\Pages;
+namespace App\Filament\User\Pages;
 
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -8,30 +8,26 @@ use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Illuminate\Support\Facades\Hash;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Auth;
-use App\Models\User;
 
-class Profile extends Page implements Forms\Contracts\HasForms
+class Settings extends Page implements Forms\Contracts\HasForms
 {
     use Forms\Concerns\InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static ?string $navigationIcon = 'heroicon-o-cog';
 
-    protected static ?string $navigationLabel = 'Profile';
+    protected static string $view = 'filament.user.pages.settings';
 
-    protected static ?string $navigationGroup = 'Settings';
+    protected static ?string $navigationLabel = 'Settings';
 
-    protected static ?int $navigationSort = 2;
-
-    protected static string $view = 'filament.admin.pages.profile';
+    protected static ?int $navigationSort = 4;
 
     public ?array $data = [];
 
     public function mount(): void
     {
         $this->form->fill([
-            'name' => Auth::user()->name,
-            'email' => Auth::user()->email,
+            'name' => auth()->user()->name,
+            'email' => auth()->user()->email,
         ]);
     }
 
@@ -66,7 +62,7 @@ class Profile extends Page implements Forms\Contracts\HasForms
     {
         $data = $this->form->getState();
 
-        if (!Hash::check($data['current_password'], Auth::user()->password)) {
+        if (!Hash::check($data['current_password'], auth()->user()->password)) {
             Notification::make()
                 ->title('Current password is incorrect')
                 ->danger()
@@ -74,15 +70,14 @@ class Profile extends Page implements Forms\Contracts\HasForms
             return;
         }
 
-        $user = User::find(Auth::id());
-        $user->update([
+        auth()->user()->update([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['new_password']),
         ]);
 
         Notification::make()
-            ->title('Profile updated successfully')
+            ->title('Settings saved successfully')
             ->success()
             ->send();
     }
@@ -95,4 +90,4 @@ class Profile extends Page implements Forms\Contracts\HasForms
                 ->action('save'),
         ];
     }
-}
+} 

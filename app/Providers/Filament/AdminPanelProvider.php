@@ -35,15 +35,18 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('ABC Cars Admin')
             ->brandLogo(asset('images/logo.png'))
             ->favicon(asset('images/favicon.ico'))
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            ->discoverResources(in: app_path('Filament/Admin/Resources'), for: 'App\\Filament\\Admin\\Resources')
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Admin\Pages\Dashboard::class,
+                \App\Filament\Admin\Pages\Profile::class,
+                \App\Filament\Admin\Pages\Settings::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            ->discoverPages(in: app_path('Filament/Admin/Pages'), for: 'App\\Filament\\Admin\\Pages')
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+                \App\Filament\Admin\Widgets\StatsOverview::class,
+                \App\Filament\Admin\Widgets\AdminActivityLog::class,
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -63,7 +66,15 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('web')
             ->registration(false)
             ->passwordReset()
-            ->profile()
+            ->profile(isSimple: false)
+            ->loginRouteSlug('login')
+            ->registrationRouteSlug('register')
+            ->passwordResetRoutePrefix('password-reset')
+            ->passwordResetRequestRouteSlug('request')
+            ->passwordResetRouteSlug('reset')
+            ->emailVerificationRoutePrefix('email-verification')
+            ->emailVerificationPromptRouteSlug('prompt')
+            ->emailVerificationRouteSlug('verify')
             ->globalSearchKeyBindings(['command+k', 'ctrl+k'])
             ->sidebarCollapsibleOnDesktop()
             ->navigationGroups([
