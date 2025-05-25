@@ -10,9 +10,9 @@ use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Filament\Widgets\StatsOverviewWidget as BaseStatsOverview;
 use Illuminate\Support\Facades\Auth;
-use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Pages\Dashboard as BasePage;
 
-class Dashboard extends BaseDashboard
+class Dashboard extends BasePage
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
     protected static ?string $navigationLabel = 'Overview';
@@ -117,8 +117,8 @@ class Dashboard extends BaseDashboard
 
                     NavigationItem::make('Profile')
                         ->icon('heroicon-o-user')
-                        ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.profile'))
-                        ->url(route('filament.admin.pages.profile')),
+                        ->isActiveWhen(fn (): bool => request()->routeIs('admin.profile.edit'))
+                        ->url(route('admin.profile.edit')),
                 ]),
         ];
     }
@@ -126,6 +126,11 @@ class Dashboard extends BaseDashboard
     public static function shouldRegister(): bool
     {
         return true;
+    }
+
+    public function getTitle(): string
+    {
+        return 'Dashboard';
     }
 }
 
