@@ -107,19 +107,6 @@ class Dashboard extends BasePage
                         ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.resources.appointments.approved'))
                         ->url(route('filament.admin.resources.appointments.approved')),
                 ]),
-
-            NavigationGroup::make('Settings')
-                ->items([
-                    NavigationItem::make('System Settings')
-                        ->icon('heroicon-o-cog')
-                        ->isActiveWhen(fn (): bool => request()->routeIs('filament.admin.pages.settings'))
-                        ->url(route('filament.admin.pages.settings')),
-
-                    NavigationItem::make('Profile')
-                        ->icon('heroicon-o-user')
-                        ->isActiveWhen(fn (): bool => request()->routeIs('admin.profile.edit'))
-                        ->url(route('admin.profile.edit')),
-                ]),
         ];
     }
 

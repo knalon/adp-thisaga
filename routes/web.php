@@ -19,9 +19,6 @@ use App\Http\Controllers\Auth\VerifyEmailController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\AboutController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\Auth\LoginController;
-use App\Filament\User\Pages\Dashboard;
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [AboutController::class, 'index'])->name('about');
@@ -40,10 +37,6 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated user routes
 Route::middleware(['auth', 'role:user'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-
     // Payment routes
     Route::get('/payment/{transaction}', [PaymentController::class, 'process'])->name('payment.process');
     Route::post('/payment/{transaction}/success', [PaymentController::class, 'success'])->name('payment.success');
@@ -51,11 +44,6 @@ Route::middleware(['auth', 'role:user'])->group(function () {
 });
 
 // Admin routes
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('admin.profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('admin.profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('admin.profile.destroy');
-});
 
 Route::middleware('auth')->group(function () {
     Route::get('verify-email', [EmailVerificationPromptController::class, '__invoke'])

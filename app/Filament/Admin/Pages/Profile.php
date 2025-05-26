@@ -2,36 +2,31 @@
 
 namespace App\Filament\Admin\Pages;
 
-use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Pages\Page;
-use Filament\Actions\Action;
-use Illuminate\Support\Facades\Hash;
+use Filament\Forms\Form;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
-class Profile extends Page implements Forms\Contracts\HasForms
+class Profile extends Page
 {
-    use Forms\Concerns\InteractsWithForms;
-
-    protected static ?string $navigationIcon = 'heroicon-o-user';
-
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
     protected static ?string $navigationLabel = 'Profile';
-
-    protected static ?string $navigationGroup = 'Settings';
-
-    protected static ?int $navigationSort = 2;
-
-    protected static string $view = 'filament.admin.pages.profile';
+    protected static ?string $title = 'Profile';
+    protected static ?int $navigationSort = 100;
 
     public ?array $data = [];
 
     public function mount(): void
     {
+        $user = Auth::user();
         $this->form->fill([
-            'name' => Auth::user()->name,
-            'email' => Auth::user()->email,
+            'name' => $user->name,
+            'email' => $user->email,
         ]);
     }
 
@@ -39,46 +34,58 @@ class Profile extends Page implements Forms\Contracts\HasForms
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('email')
+                TextInput::make('email')
                     ->email()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('current_password')
+                TextInput::make('current_password')
                     ->password()
-                    ->required()
-                    ->dehydrated(false),
-                Forms\Components\TextInput::make('new_password')
+                    ->dehydrated(false)
+                    ->nullable(),
+                TextInput::make('new_password')
                     ->password()
-                    ->required()
-                    ->minLength(8)
-                    ->different('current_password'),
-                Forms\Components\TextInput::make('new_password_confirmation')
+                    ->dehydrated(false)
+                    ->nullable()
+                    ->minLength(8),
+                TextInput::make('new_password_confirmation')
                     ->password()
-                    ->required()
-                    ->same('new_password'),
+                    ->dehydrated(false)
+                    ->nullable()
+                    ->minLength(8),
             ]);
     }
 
-    public function save(): void
+    public function submit(): void
     {
         $data = $this->form->getState();
+        $user = Auth::user();
 
-        if (!Hash::check($data['current_password'], Auth::user()->password)) {
-            Notification::make()
-                ->title('Current password is incorrect')
-                ->danger()
-                ->send();
-            return;
+        if ($data['current_password'] && $data['new_password']) {
+            if (!Hash::check($data['current_password'], $user->password)) {
+                Notification::make()
+                    ->title('Current password is incorrect')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            if ($data['new_password'] !== $data['new_password_confirmation']) {
+                Notification::make()
+                    ->title('New passwords do not match')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            $user->password = Hash::make($data['new_password']);
         }
 
-        $user = User::find(Auth::id());
-        $user->update([
+        User::where('id', $user->id)->update([
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => Hash::make($data['new_password']),
         ]);
 
         Notification::make()
@@ -90,9 +97,14 @@ class Profile extends Page implements Forms\Contracts\HasForms
     protected function getFormActions(): array
     {
         return [
-            Action::make('save')
+            \Filament\Forms\Components\Actions\Action::make('save')
                 ->label('Save')
-                ->action('save'),
+                ->submit('submit'),
         ];
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return 'Account';
     }
 }
