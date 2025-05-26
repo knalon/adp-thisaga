@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class PurchasedCarsResource extends Resource
 {
@@ -53,6 +54,7 @@ class PurchasedCarsResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(fn (Builder $query) => $query->where('buyer_id', Auth::id()))
             ->columns([
                 Tables\Columns\TextColumn::make('make')
                     ->searchable(),
@@ -105,7 +107,7 @@ class PurchasedCarsResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('buyer_id', auth()->id())
+            ->where('buyer_id', Auth::id())
             ->where('status', 'sold');
     }
-} 
+}

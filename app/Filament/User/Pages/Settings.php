@@ -8,6 +8,9 @@ use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Illuminate\Support\Facades\Hash;
 use Filament\Notifications\Notification;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\FileUpload;
+use Illuminate\Support\Facades\Auth;
 
 class Settings extends Page implements Forms\Contracts\HasForms
 {
@@ -21,13 +24,18 @@ class Settings extends Page implements Forms\Contracts\HasForms
 
     protected static ?int $navigationSort = 4;
 
+    protected static ?string $title = 'Settings';
+
+    protected static ?string $slug = 'settings';
+
     public ?array $data = [];
 
     public function mount(): void
     {
+        $user = auth()->user();
         $this->form->fill([
-            'name' => auth()->user()->name,
-            'email' => auth()->user()->email,
+            'name' => $user->name,
+            'email' => $user->email,
         ]);
     }
 
@@ -35,51 +43,52 @@ class Settings extends Page implements Forms\Contracts\HasForms
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('name')
+                TextInput::make('name')
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('email')
+                TextInput::make('email')
                     ->email()
                     ->required()
                     ->maxLength(255),
-                Forms\Components\TextInput::make('current_password')
+                TextInput::make('current_password')
                     ->password()
-                    ->required()
-                    ->dehydrated(false),
-                Forms\Components\TextInput::make('new_password')
+                    ->dehydrated(false)
+                    ->required(fn ($livewire) => $livewire->data['new_password'] !== null)
+                    ->currentPassword(),
+                TextInput::make('new_password')
                     ->password()
-                    ->required()
+                    ->dehydrated(false)
                     ->minLength(8)
-                    ->different('current_password'),
-                Forms\Components\TextInput::make('new_password_confirmation')
+                    ->same('new_password_confirmation'),
+                TextInput::make('new_password_confirmation')
                     ->password()
-                    ->required()
-                    ->same('new_password'),
+                    ->dehydrated(false)
+                    ->minLength(8),
+                FileUpload::make('avatar')
+                    ->image()
+                    ->directory('avatars')
+                    ->visibility('public'),
             ]);
     }
 
     public function save(): void
     {
         $data = $this->form->getState();
+        $user = auth()->user();
 
-        if (!Hash::check($data['current_password'], auth()->user()->password)) {
-            Notification::make()
-                ->title('Current password is incorrect')
-                ->danger()
-                ->send();
-            return;
+        if ($data['new_password']) {
+            $user->password = Hash::make($data['new_password']);
         }
 
-        auth()->user()->update([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['new_password']),
-        ]);
+        if ($data['avatar']) {
+            $user->avatar = $data['avatar'];
+        }
 
-        Notification::make()
-            ->title('Settings saved successfully')
-            ->success()
-            ->send();
+        $user->name = $data['name'];
+        $user->email = $data['email'];
+        $user->save();
+
+        $this->notify('success', 'Settings saved successfully');
     }
 
     protected function getFormActions(): array
@@ -87,7 +96,14 @@ class Settings extends Page implements Forms\Contracts\HasForms
         return [
             Action::make('save')
                 ->label('Save')
-                ->action('save'),
+                ->submit('save'),
         ];
     }
-} 
+
+    public function getViewData(): array
+    {
+        return [
+            'user' => auth()->user(),
+        ];
+    }
+}

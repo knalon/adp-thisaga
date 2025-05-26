@@ -3,12 +3,12 @@
 namespace App\Filament\Admin\Resources;
 
 use App\Filament\Admin\Resources\RolesResource\Pages;
-use App\Models\Role;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Spatie\Permission\Models\Role;
 
 class RolesResource extends Resource
 {
@@ -87,4 +87,4 @@ class RolesResource extends Resource
             'edit' => Pages\EditRole::route('/{record}/edit'),
         ];
     }
-} 
+}

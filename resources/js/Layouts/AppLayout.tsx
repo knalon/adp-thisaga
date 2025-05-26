@@ -33,14 +33,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // Profile dropdown items - for Admin
   const adminProfileNavigation: UserNavigationItem[] = [
     { name: 'Your Profile', href: '/profile' },
-    { name: 'Admin Dashboard', href: '/admin/dashboard' },
+    { name: 'Admin Dashboard', href: '/admin' },
     { name: 'Sign out', href: route('logout'), method: 'post' },
   ];
 
   // Profile dropdown items - for Regular User
   const userProfileNavigation: UserNavigationItem[] = [
     { name: 'Your Profile', href: '/profile' },
-    { name: 'User Dashboard', href: '/dashboard' },
+    { name: 'User Dashboard', href: '/user' },
     { name: 'Sign out', href: route('logout'), method: 'post' },
   ];
 
