@@ -29,7 +29,19 @@ class UserPanelProvider extends PanelProvider
             ->path('user')
             ->login()
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => [
+                    50 => '238, 242, 255',
+                    100 => '224, 231, 255',
+                    200 => '199, 210, 254',
+                    300 => '165, 180, 252',
+                    400 => '129, 140, 248',
+                    500 => '99, 102, 241',
+                    600 => '79, 70, 229',
+                    700 => '67, 56, 202',
+                    800 => '55, 48, 163',
+                    900 => '49, 46, 129',
+                    950 => '30, 27, 75',
+                ],
             ])
             ->brandName('ABC Cars User Portal')
             ->favicon(asset('images/favicon.ico'))
@@ -65,6 +77,10 @@ class UserPanelProvider extends PanelProvider
                 'My Cars',
                 'Bids & Appointments',
                 'Transactions',
-            ]);
+            ])
+            ->theme('resources/css/filament.css')
+            ->darkMode(true)
+            ->topNavigation()
+            ->collapsibleSidebarGroups();
     }
 }
